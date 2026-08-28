@@ -1,14 +1,9 @@
 ```html
 <!doctype html>
 <html lang="en">
-
 <head>
 <meta charset="utf-8">
-
-<meta
-    name="viewport"
-    content="width=device-width,initial-scale=1,viewport-fit=cover"
->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 
 <title>Neon Escape</title>
 
@@ -35,18 +30,15 @@ body {
 
 canvas {
     display: block;
-
     width: 100%;
     height: 100%;
 }
 
 #overlay {
     position: fixed;
-
     inset: 0;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
@@ -58,8 +50,7 @@ canvas {
 
     text-align: center;
 
-    background:
-        rgba(0, 0, 0, 0.88);
+    background: rgba(0, 0, 0, 0.9);
 
     border:
         1px solid
@@ -67,15 +58,23 @@ canvas {
 
     border-radius: 14px;
 
-    padding: 28px 34px;
+    padding: 24px;
 
-    min-width: 280px;
+    min-width:
+        min(620px, 92vw);
+
+    max-height:
+        90vh;
+
+    overflow-y:
+        auto;
 
     box-shadow:
         0 0 50px
         rgba(0, 255, 255, 0.15);
 
-    pointer-events: auto;
+    pointer-events:
+        auto;
 }
 
 #message.show {
@@ -84,73 +83,24 @@ canvas {
 
 #message h1 {
     margin:
-        0 0 12px;
-
-    font-size: 44px;
-}
-
-#message p {
-    margin:
-        8px 0;
-
-    color: #ccc;
-}
-
-.accent {
-    color: #00ffff !important;
-    font-weight: bold;
-}
-
-
-/* ==================================================
-   SHOP
-================================================== */
-
-.shop {
-    width:
-        min(650px, 92vw);
-
-    max-height:
-        90vh;
-
-    overflow-y:
-        auto;
-
-    padding:
-        26px;
-}
-
-.shop h1 {
-    margin:
-        0 0 5px;
-
-    color:
-        #00ffff;
+        0 0 8px;
 
     font-size:
         38px;
 }
 
-.shop-subtitle {
+#message p {
     color:
-        #aaa;
-
-    margin-bottom:
-        18px;
+        #bbb;
 }
 
-.shop-currency {
-    font-size:
-        20px;
 
-    margin:
-        12px 0 20px;
-
-    color:
-        #ffe600;
-}
+/* ================================
+   SHOP
+================================ */
 
 .shop-grid {
+
     display:
         grid;
 
@@ -159,9 +109,13 @@ canvas {
 
     gap:
         10px;
+
+    margin-top:
+        16px;
 }
 
 .shop-item {
+
     border:
         1px solid
         rgba(255,255,255,0.15);
@@ -173,21 +127,20 @@ canvas {
         10px;
 
     padding:
-        15px;
+        14px;
 
     text-align:
         left;
 }
 
 .shop-item h3 {
-    margin:
-        0 0 6px;
 
-    color:
-        white;
+    margin:
+        0 0 5px;
 }
 
 .shop-item p {
+
     font-size:
         13px;
 
@@ -195,10 +148,11 @@ canvas {
         1.4;
 
     min-height:
-        38px;
+        52px;
 }
 
 .shop-item button {
+
     width:
         100%;
 
@@ -219,50 +173,30 @@ canvas {
 
     font-weight:
         bold;
-
-    cursor:
-        pointer;
 }
 
 .shop-item button:disabled {
+
     opacity:
         0.3;
-
-    cursor:
-        default;
 }
 
-.shop-footer {
-    margin-top:
-        20px;
-
-    color:
-        #888;
-
-    font-size:
-        13px;
-}
-
-.cooldown {
-    color:
-        #ff1744;
-}
 
 @media (max-width: 600px) {
 
-    .shop {
+    #message {
         padding:
-            18px;
-    }
-
-    .shop h1 {
-        font-size:
-            32px;
+            16px;
     }
 
     .shop-grid {
         grid-template-columns:
             1fr;
+    }
+
+    .shop-item p {
+        min-height:
+            auto;
     }
 }
 
@@ -318,10 +252,16 @@ function resize() {
         );
 
     width =
-        window.innerWidth;
+        Math.max(
+            1,
+            window.innerWidth
+        );
 
     height =
-        window.innerHeight;
+        Math.max(
+            1,
+            window.innerHeight
+        );
 
 
     canvas.width =
@@ -353,12 +293,19 @@ function resize() {
 
 
     if (
-        player.x === 0 &&
-        player.y === 0
+        !Number.isFinite(player.x) ||
+        player.x === 0
     ) {
 
         player.x =
             width / 2;
+    }
+
+
+    if (
+        !Number.isFinite(player.y) ||
+        player.y === 0
+    ) {
 
         player.y =
             height / 2;
@@ -380,16 +327,14 @@ const keys =
     Object.create(null);
 
 
-function setKey(
-    event,
-    value
-) {
+function keyDown(event) {
 
     const key =
         event.key.toLowerCase();
 
+
     keys[key] =
-        value;
+        true;
 
 
     const gameKeys = [
@@ -420,7 +365,6 @@ function setKey(
         "3",
         "4",
         "5"
-
     ];
 
 
@@ -430,116 +374,80 @@ function setKey(
 
         event.preventDefault();
     }
+
+
+    /*
+        Ignore browser key-repeat
+        for one-shot actions.
+    */
+
+    if (
+        event.repeat
+    ) {
+
+        return;
+    }
+
+
+    if (
+        key === "p"
+    ) {
+
+        toggleShop();
+    }
+
+    else if (
+        key === "r" &&
+        gameOver
+    ) {
+
+        restart();
+    }
+
+    else if (
+        key === " " &&
+        !gameOver &&
+        !paused
+    ) {
+
+        shoot();
+    }
+
+    else if (
+        key === "shift" &&
+        !gameOver &&
+        !paused
+    ) {
+
+        dash();
+    }
+
+    else if (
+        paused &&
+        ["1", "2", "3", "4", "5"]
+            .includes(key)
+    ) {
+
+        const upgradesByKey = {
+
+            "1": "rapid",
+            "2": "heavy",
+            "3": "thrusters",
+            "4": "overdrive",
+            "5": "repair"
+        };
+
+
+        buyUpgrade(
+            upgradesByKey[key]
+        );
+    }
 }
 
 
 window.addEventListener(
     "keydown",
-    function(event) {
-
-        setKey(
-            event,
-            true
-        );
-
-
-        /*
-            Ignore repeated
-            action keys.
-        */
-
-        if (event.repeat) {
-            return;
-        }
-
-
-        const key =
-            event.key.toLowerCase();
-
-
-        /*
-            Shop.
-        */
-
-        if (
-            key === "p"
-        ) {
-
-            toggleShop();
-        }
-
-
-        /*
-            Restart.
-        */
-
-        if (
-            key === "r" &&
-            gameOver
-        ) {
-
-            restart();
-        }
-
-
-        /*
-            Fire.
-        */
-
-        if (
-            key === " " &&
-            !gameOver &&
-            !paused
-        ) {
-
-            shoot();
-        }
-
-
-        /*
-            Dash.
-        */
-
-        if (
-            key === "shift" &&
-            !gameOver &&
-            !paused
-        ) {
-
-            dash();
-        }
-
-
-        /*
-            Shop purchases.
-        */
-
-        if (
-            paused &&
-            !gameOver
-        ) {
-
-            if (key === "1") {
-                buyUpgrade("rapid");
-            }
-
-            if (key === "2") {
-                buyUpgrade("heavy");
-            }
-
-            if (key === "3") {
-                buyUpgrade("thrusters");
-            }
-
-            if (key === "4") {
-                buyUpgrade("overdrive");
-            }
-
-            if (key === "5") {
-                buyUpgrade("repair");
-            }
-        }
-    }
+    keyDown
 );
 
 
@@ -547,16 +455,15 @@ window.addEventListener(
     "keyup",
     function(event) {
 
-        setKey(
-            event,
-            false
-        );
+        keys[
+            event.key.toLowerCase()
+        ] = false;
     }
 );
 
 
 /*
-    Prevent stuck keys.
+    Prevent keys getting stuck.
 */
 
 window.addEventListener(
@@ -574,8 +481,8 @@ window.addEventListener(
 
 
 /*
-    Pause when browser
-    visibility changes.
+    If the browser tab becomes
+    hidden, pause the game.
 */
 
 document.addEventListener(
@@ -603,71 +510,26 @@ let paused = false;
 
 let gameOver = false;
 
-
-/*
-    Score is separate from
-    currency.
-*/
-
 let score = 0;
 
 let orbs = 0;
 
 let timeAlive = 0;
 
-
-let highScore =
-    Number(
-        localStorage.getItem(
-            "neonEscapeHighScore"
-        )
-    ) || 0;
-
-
-/*
-    Shop cooldown.
-
-    The player has to wait
-    this long after opening
-    the shop before opening
-    it again.
-*/
-
-let shopCooldown = 0;
-
-const SHOP_COOLDOWN_TIME = 10;
-
-
-/*
-    Prevent shop opening
-    immediately after starting.
-*/
-
-let shopReadyDelay = 1.5;
-
-
-/*
-    Enemy spawning.
-*/
-
 let spawnTimer = 0;
 
 let orbTimer = 1.5;
 
+let shopCooldown = 0;
 
-/*
-    Visual effects.
-*/
+let shopReadyDelay = 1.5;
 
 let screenShake = 0;
 
+let lastTime = 0;
 
-/*
-    Main loop timing.
-*/
 
-let lastTime =
-    performance.now();
+const SHOP_COOLDOWN_TIME = 10;
 
 
 /* ==================================================
@@ -710,6 +572,36 @@ const COLORS = {
 
 
 /* ==================================================
+   HIGH SCORE
+================================================== */
+
+let highScore = 0;
+
+
+try {
+
+    highScore =
+        Number(
+            localStorage.getItem(
+                "neonEscapeHighScore"
+            )
+        ) || 0;
+
+}
+
+catch (error) {
+
+    /*
+        Some browser/privacy
+        configurations can block
+        localStorage.
+    */
+
+    highScore = 0;
+}
+
+
+/* ==================================================
    PLAYER
 ================================================== */
 
@@ -720,29 +612,12 @@ const player = {
 
     radius: 14,
 
-
-    /*
-        Movement
-    */
-
     moveSpeed: 300,
-
-
-    /*
-        Aim
-    */
 
     aimAngle: 0,
 
     aimX: 1,
     aimY: 0,
-
-    aimSpeed: 3.8,
-
-
-    /*
-        Cannon
-    */
 
     fireCooldown: 0,
 
@@ -751,11 +626,6 @@ const player = {
     bulletSpeed: 850,
 
     bulletDamage: 1,
-
-
-    /*
-        Dash
-    */
 
     dashCooldown: 0,
 
@@ -770,11 +640,6 @@ const player = {
     dashX: 1,
     dashY: 0,
 
-
-    /*
-        Health
-    */
-
     maxHealth: 3,
 
     health: 3
@@ -788,26 +653,38 @@ const player = {
 const upgrades = {
 
     rapid: {
+
         level: 0,
+
         maxLevel: 3,
+
         cost: 3
     },
 
     heavy: {
+
         level: 0,
+
         maxLevel: 2,
+
         cost: 5
     },
 
     thrusters: {
+
         level: 0,
+
         maxLevel: 3,
+
         cost: 4
     },
 
     overdrive: {
+
         level: 0,
+
         maxLevel: 2,
+
         cost: 6
     }
 };
@@ -837,27 +714,193 @@ function distance(a, b) {
 
 
 /* ==================================================
-   SHOP
+   APPLY UPGRADES
+================================================== */
+
+function applyUpgrades() {
+
+    /*
+        Rapid Fire
+    */
+
+    player.fireRate =
+        0.16 *
+        Math.pow(
+            0.8,
+            upgrades.rapid.level
+        );
+
+
+    /*
+        Heavy Cannon
+    */
+
+    player.bulletDamage =
+        1 +
+        upgrades.heavy.level;
+
+
+    /*
+        Thrusters
+    */
+
+    player.moveSpeed =
+        300 *
+        (
+            1 +
+            upgrades.thrusters.level *
+            0.15
+        );
+
+
+    /*
+        Overdrive
+    */
+
+    player.dashMaxCooldown =
+        1.1 *
+        Math.pow(
+            0.8,
+            upgrades.overdrive.level
+        );
+}
+
+
+/* ==================================================
+   RESET UPGRADES
+================================================== */
+
+function resetUpgrades() {
+
+    for (
+        const upgrade of
+        Object.values(upgrades)
+    ) {
+
+        upgrade.level = 0;
+    }
+
+
+    applyUpgrades();
+}
+
+
+/* ==================================================
+   RESTART
+================================================== */
+
+function restart() {
+
+    /*
+        Reset game state.
+    */
+
+    paused = false;
+
+    gameOver = false;
+
+    score = 0;
+
+    orbs = 0;
+
+    timeAlive = 0;
+
+    spawnTimer = 0.25;
+
+    orbTimer = 1.5;
+
+    shopCooldown = 0;
+
+    shopReadyDelay = 1.5;
+
+    screenShake = 0;
+
+
+    /*
+        Clear every object.
+    */
+
+    bullets.length = 0;
+
+    enemies.length = 0;
+
+    orbsOnMap.length = 0;
+
+    particles.length = 0;
+
+
+    /*
+        Reset player.
+    */
+
+    player.x =
+        width / 2;
+
+    player.y =
+        height / 2;
+
+    player.health =
+        player.maxHealth;
+
+    player.fireCooldown =
+        0;
+
+    player.dashCooldown =
+        0;
+
+    player.dashTime =
+        0;
+
+    player.aimAngle =
+        0;
+
+    player.aimX =
+        1;
+
+    player.aimY =
+        0;
+
+    player.dashX =
+        1;
+
+    player.dashY =
+        0;
+
+
+    /*
+        Purchased upgrades
+        do NOT carry over.
+    */
+
+    resetUpgrades();
+
+
+    updateMessage();
+}
+
+
+/* ==================================================
+   SHOP TOGGLE
 ================================================== */
 
 function toggleShop() {
 
-    /*
-        Can't open during game
-        over.
-    */
+    if (
+        gameOver
+    ) {
 
-    if (gameOver) {
         return;
     }
 
 
     /*
-        If already open,
-        closing is always allowed.
+        Closing the shop is always
+        possible.
     */
 
-    if (paused) {
+    if (
+        paused
+    ) {
 
         paused = false;
 
@@ -868,7 +911,8 @@ function toggleShop() {
 
 
     /*
-        Shop cooldown.
+        Opening is blocked by
+        the cooldown.
     */
 
     if (
@@ -880,24 +924,26 @@ function toggleShop() {
     }
 
 
-    /*
-        Open shop.
-    */
-
     paused = true;
+
+    /*
+        The cooldown begins when
+        the shop is opened.
+    */
 
     shopCooldown =
         SHOP_COOLDOWN_TIME;
 
-    updateMessage();
+
+    updateShopMessage();
 }
 
 
 /* ==================================================
-   SHOP HTML
+   SHOP ITEM HTML
 ================================================== */
 
-function getUpgradeButton(
+function upgradeHTML(
     id,
     name,
     description,
@@ -913,34 +959,14 @@ function getUpgradeButton(
         upgrade.maxLevel;
 
 
-    const affordable =
+    const canBuy =
         orbs >=
-        upgrade.cost;
-
-
-    const disabled =
-        maxed ||
-        !affordable;
-
-
-    let text;
-
-
-    if (maxed) {
-
-        text =
-            "MAXED";
-
-    }
-
-    else {
-
-        text =
-            `BUY — ${upgrade.cost} ORBS`;
-    }
+        upgrade.cost &&
+        !maxed;
 
 
     return `
+
         <div class="shop-item">
 
             <h3 style="color:${color}">
@@ -956,9 +982,15 @@ function getUpgradeButton(
 
             <button
                 onclick="buyUpgrade('${id}')"
-                ${disabled ? "disabled" : ""}
+                ${canBuy ? "" : "disabled"}
             >
-                ${text}
+
+                ${
+                    maxed
+                        ? "MAXED"
+                        : `BUY — ${upgrade.cost} ORBS`
+                }
+
             </button>
 
         </div>
@@ -967,122 +999,135 @@ function getUpgradeButton(
 
 
 /* ==================================================
-   UPDATE SHOP
+   SHOP UI
 ================================================== */
 
 function updateShopMessage() {
 
+    const cooldownText =
+        shopCooldown > 0
+
+            ? `<span style="color:#ff1744">
+                Shop cooldown:
+                ${shopCooldown.toFixed(1)}s
+               </span>`
+
+            : "Shop ready after cooldown.";
+
+
     message.innerHTML = `
 
-        <div class="shop">
+        <h1 style="color:#00ffff">
+            ARMORY
+        </h1>
 
-            <h1>
-                ARMORY
-            </h1>
+        <p>
+            Spend yellow orbs on temporary upgrades.
+            All upgrades reset when the run ends.
+        </p>
 
-            <div class="shop-subtitle">
-                Spend yellow orbs on temporary upgrades.
-            </div>
-
-            <div class="shop-currency">
-                ORBS: ${orbs}
-            </div>
-
-
-            <div class="shop-grid">
-
-                ${getUpgradeButton(
-                    "rapid",
-                    "RAPID FIRE",
-                    "Reduces cannon fire delay by 20% per level.",
-                    "#00ffff"
-                )}
-
-                ${getUpgradeButton(
-                    "heavy",
-                    "HEAVY CANNON",
-                    "Increases bullet damage by 1 per level.",
-                    "#ff7b00"
-                )}
-
-                ${getUpgradeButton(
-                    "thrusters",
-                    "THRUSTERS",
-                    "Increases movement speed by 15% per level.",
-                    "#00ff88"
-                )}
-
-                ${getUpgradeButton(
-                    "overdrive",
-                    "OVERDRIVE",
-                    "Reduces dash cooldown by 20% per level.",
-                    "#a66cff"
-                )}
-
-                <div class="shop-item">
-
-                    <h3 style="color:#ff5555">
-                        REPAIR
-                    </h3>
-
-                    <p>
-                        Restore one health point.
-                        Costs 2 orbs.
-                        <br>
-                        Health:
-                        ${player.health}/${player.maxHealth}
-                    </p>
-
-                    <button
-                        onclick="buyUpgrade('repair')"
-                        ${
-                            player.health >=
-                            player.maxHealth ||
-                            orbs < 2
-                                ? "disabled"
-                                : ""
-                        }
-                    >
-                        ${
-                            player.health >=
-                            player.maxHealth
-                                ? "FULL HEALTH"
-                                : "BUY — 2 ORBS"
-                        }
-                    </button>
-
-                </div>
-
-            </div>
+        <p style="
+            color:#ffe600;
+            font-weight:bold;
+            font-size:20px;
+        ">
+            ORBS: ${orbs}
+        </p>
 
 
-            <div class="shop-footer">
+        <div class="shop-grid">
 
-                Press P to close.
-                <br>
+            ${upgradeHTML(
+                "rapid",
+                "RAPID FIRE",
+                "20% less cannon delay per level.",
+                "#00ffff"
+            )}
 
-                ${
-                    shopCooldown > 0
-                        ? `<span class="cooldown">
-                            Shop cooldown:
-                            ${shopCooldown.toFixed(1)}s
-                           </span>`
-                        : "Shop ready after closing."
-                }
+            ${upgradeHTML(
+                "heavy",
+                "HEAVY CANNON",
+                "+1 bullet damage per level.",
+                "#ff7b00"
+            )}
 
-                <br><br>
+            ${upgradeHTML(
+                "thrusters",
+                "THRUSTERS",
+                "+15% movement speed per level.",
+                "#00ff88"
+            )}
 
-                Keyboard:
-                1 Rapid Fire ·
-                2 Heavy Cannon ·
-                3 Thrusters ·
-                4 Overdrive ·
-                5 Repair
+            ${upgradeHTML(
+                "overdrive",
+                "OVERDRIVE",
+                "20% less dash cooldown per level.",
+                "#a66cff"
+            )}
+
+
+            <div class="shop-item">
+
+                <h3 style="color:#ff5555">
+                    REPAIR
+                </h3>
+
+                <p>
+                    Restore one health point.
+                    <br>
+                    Health:
+                    ${player.health}/${player.maxHealth}
+                </p>
+
+                <button
+                    onclick="buyUpgrade('repair')"
+                    ${
+                        orbs >= 2 &&
+                        player.health <
+                        player.maxHealth
+                            ? ""
+                            : "disabled"
+                    }
+                >
+
+                    ${
+                        player.health >=
+                        player.maxHealth
+
+                            ? "FULL HEALTH"
+
+                            : "BUY — 2 ORBS"
+                    }
+
+                </button>
 
             </div>
 
         </div>
+
+
+        <p style="
+            font-size:13px;
+            color:#888;
+        ">
+
+            Press P to close.
+
+            ${cooldownText}
+
+            <br><br>
+
+            Keys:
+
+            1 Rapid ·
+            2 Heavy ·
+            3 Thrusters ·
+            4 Overdrive ·
+            5 Repair
+
+        </p>
     `;
+
 
     message.classList.add(
         "show"
@@ -1134,6 +1179,7 @@ function buyUpgrade(id) {
             updateShopMessage();
         }
 
+
         return;
     }
 
@@ -1143,6 +1189,7 @@ function buyUpgrade(id) {
 
 
     if (!upgrade) {
+
         return;
     }
 
@@ -1165,19 +1212,13 @@ function buyUpgrade(id) {
     }
 
 
-    /*
-        Purchase.
-    */
-
     orbs -=
         upgrade.cost;
 
-    upgrade.level += 1;
 
+    upgrade.level +=
+        1;
 
-    /*
-        Apply immediately.
-    */
 
     applyUpgrades();
 
@@ -1195,74 +1236,28 @@ function buyUpgrade(id) {
 }
 
 
-/* ==================================================
-   APPLY UPGRADES
-================================================== */
+/*
+    Needed because shop buttons
+    use inline onclick handlers.
+*/
 
-function applyUpgrades() {
-
-    /*
-        Rapid fire:
-        20% less delay per level.
-    */
-
-    player.fireRate =
-        0.16 *
-        Math.pow(
-            0.8,
-            upgrades.rapid.level
-        );
-
-
-    /*
-        Heavy cannon:
-        +1 damage per level.
-    */
-
-    player.bulletDamage =
-        1 +
-        upgrades.heavy.level;
-
-
-    /*
-        Thrusters:
-        +15% movement per level.
-    */
-
-    player.moveSpeed =
-        300 *
-        (
-            1 +
-            upgrades.thrusters.level *
-            0.15
-        );
-
-
-    /*
-        Overdrive:
-        -20% dash cooldown per level.
-    */
-
-    player.dashMaxCooldown =
-        1.1 *
-        Math.pow(
-            0.8,
-            upgrades.overdrive.level
-        );
-}
+window.buyUpgrade =
+    buyUpgrade;
 
 
 /* ==================================================
-   UPDATE MESSAGE
+   MESSAGE
 ================================================== */
 
 function updateMessage() {
 
-    if (gameOver) {
+    if (
+        gameOver
+    ) {
 
         message.innerHTML = `
 
-            <h1 style="color:${COLORS.red}">
+            <h1 style="color:#ff1744">
                 GAME OVER
             </h1>
 
@@ -1287,7 +1282,10 @@ function updateMessage() {
                 </strong>
             </p>
 
-            <p class="accent">
+            <p style="
+                color:#00ffff;
+                font-weight:bold;
+            ">
                 Press R to restart
             </p>
         `;
@@ -1297,27 +1295,27 @@ function updateMessage() {
             "show"
         );
 
-
-        return;
     }
 
-
-    if (paused) {
+    else if (
+        paused
+    ) {
 
         updateShopMessage();
 
-        return;
     }
 
+    else {
 
-    message.classList.remove(
-        "show"
-    );
+        message.classList.remove(
+            "show"
+        );
+    }
 }
 
 
 /* ==================================================
-   SPAWN POSITION
+   RANDOM EDGE POSITION
 ================================================== */
 
 function randomEdgePosition(
@@ -1330,9 +1328,12 @@ function randomEdgePosition(
         );
 
 
-    if (side === 0) {
+    if (
+        side === 0
+    ) {
 
         return {
+
             x:
                 Math.random() *
                 width,
@@ -1343,9 +1344,12 @@ function randomEdgePosition(
     }
 
 
-    if (side === 1) {
+    if (
+        side === 1
+    ) {
 
         return {
+
             x:
                 width + margin,
 
@@ -1356,9 +1360,12 @@ function randomEdgePosition(
     }
 
 
-    if (side === 2) {
+    if (
+        side === 2
+    ) {
 
         return {
+
             x:
                 Math.random() *
                 width,
@@ -1387,14 +1394,13 @@ function randomEdgePosition(
 
 function spawnEnemy() {
 
-    const pos =
+    const position =
         randomEdgePosition();
 
 
     const difficulty =
         1 +
-        timeAlive /
-        30;
+        timeAlive / 30;
 
 
     const roll =
@@ -1405,10 +1411,6 @@ function spawnEnemy() {
         "normal";
 
 
-    /*
-        Fast enemies.
-    */
-
     if (
         timeAlive > 20 &&
         roll < 0.20
@@ -1418,10 +1420,6 @@ function spawnEnemy() {
             "fast";
     }
 
-
-    /*
-        Tanks.
-    */
 
     if (
         timeAlive > 45 &&
@@ -1435,17 +1433,22 @@ function spawnEnemy() {
 
     const enemy = {
 
-        x: pos.x,
-        y: pos.y,
+        x:
+            position.x,
+
+        y:
+            position.y,
 
         rotation:
             Math.random() *
             Math.PI *
             2,
 
-        type: type,
+        type:
+            type,
 
-        hitFlash: 0
+        hitFlash:
+            0
     };
 
 
@@ -1453,15 +1456,18 @@ function spawnEnemy() {
         type === "fast"
     ) {
 
-        enemy.radius = 9;
+        enemy.radius =
+            9;
 
         enemy.speed =
             115 *
             difficulty;
 
-        enemy.hp = 1;
+        enemy.hp =
+            1;
 
-        enemy.points = 150;
+        enemy.points =
+            150;
     }
 
 
@@ -1469,29 +1475,35 @@ function spawnEnemy() {
         type === "tank"
     ) {
 
-        enemy.radius = 22;
+        enemy.radius =
+            22;
 
         enemy.speed =
             42 *
             difficulty;
 
-        enemy.hp = 3;
+        enemy.hp =
+            3;
 
-        enemy.points = 400;
+        enemy.points =
+            400;
     }
 
 
     else {
 
-        enemy.radius = 14;
+        enemy.radius =
+            14;
 
         enemy.speed =
             62 *
             difficulty;
 
-        enemy.hp = 1;
+        enemy.hp =
+            1;
 
-        enemy.points = 100;
+        enemy.points =
+            100;
     }
 
 
@@ -1507,7 +1519,8 @@ function spawnEnemy() {
 
 function spawnOrb() {
 
-    const padding = 70;
+    const padding =
+        70;
 
 
     orbsOnMap.push({
@@ -1530,14 +1543,16 @@ function spawnOrb() {
                 padding * 2
             ),
 
-        radius: 7,
+        radius:
+            7,
 
         pulse:
             Math.random() *
             Math.PI *
             2,
 
-        life: 8
+        life:
+            8
     });
 }
 
@@ -1556,7 +1571,9 @@ function makeParticles(
 
     for (
         let i = 0;
+
         i < amount;
+
         i++
     ) {
 
@@ -1577,8 +1594,11 @@ function makeParticles(
 
         particles.push({
 
-            x: x,
-            y: y,
+            x:
+                x,
+
+            y:
+                y,
 
             dx:
                 Math.cos(angle) *
@@ -1616,14 +1636,7 @@ function shoot() {
 
     if (
         gameOver ||
-        paused
-    ) {
-
-        return;
-    }
-
-
-    if (
+        paused ||
         player.fireCooldown > 0
     ) {
 
@@ -1653,8 +1666,11 @@ function shoot() {
 
     bullets.push({
 
-        x: x,
-        y: y,
+        x:
+            x,
+
+        y:
+            y,
 
         dx:
             Math.cos(
@@ -1666,7 +1682,8 @@ function shoot() {
                 player.aimAngle
             ),
 
-        radius: 4,
+        radius:
+            4,
 
         speed:
             player.bulletSpeed,
@@ -1674,7 +1691,8 @@ function shoot() {
         damage:
             player.bulletDamage,
 
-        life: 1.25
+        life:
+            1.25
     });
 
 
@@ -1707,14 +1725,7 @@ function dash() {
 
     if (
         gameOver ||
-        paused
-    ) {
-
-        return;
-    }
-
-
-    if (
+        paused ||
         player.dashCooldown > 0
     ) {
 
@@ -1770,24 +1781,24 @@ function dash() {
 
 
     if (
-        length === 0
+        length > 0
     ) {
-
-        dx =
-            player.dashX;
-
-        dy =
-            player.dashY;
-
-    }
-
-    else {
 
         dx /=
             length;
 
         dy /=
             length;
+
+    }
+
+    else {
+
+        dx =
+            player.dashX;
+
+        dy =
+            player.dashY;
     }
 
 
@@ -1817,6 +1828,38 @@ function dash() {
 
 
 /* ==================================================
+   DAMAGE
+================================================== */
+
+function damagePlayer() {
+
+    player.health -=
+        1;
+
+
+    makeParticles(
+        player.x,
+        player.y,
+        COLORS.red,
+        30,
+        250
+    );
+
+
+    screenShake =
+        10;
+
+
+    if (
+        player.health <= 0
+    ) {
+
+        endGame();
+    }
+}
+
+
+/* ==================================================
    UPDATE
 ================================================== */
 
@@ -1824,8 +1867,8 @@ function update(delta) {
 
     /*
         Shop cooldown keeps
-        running even while the
-        shop is open.
+        running while the shop
+        is open.
     */
 
     if (
@@ -1855,12 +1898,13 @@ function update(delta) {
 
 
     /*
-        Game paused.
+        Don't update gameplay
+        while paused.
     */
 
     if (
-        gameOver ||
-        paused
+        paused ||
+        gameOver
     ) {
 
         updateParticles(
@@ -1871,17 +1915,25 @@ function update(delta) {
     }
 
 
-    /* ----------------------------------------------
-       SURVIVAL
-    ---------------------------------------------- */
-
     timeAlive +=
         delta;
 
 
+    /*
+        Survival score.
+
+        Math.max is important:
+        killing enemies can add
+        points without the survival
+        score overwriting them.
+    */
+
     score =
-        Math.floor(
-            timeAlive * 10
+        Math.max(
+            score,
+            Math.floor(
+                timeAlive * 10
+            )
         );
 
 
@@ -1978,19 +2030,34 @@ function update(delta) {
     let moveY = 0;
 
 
-    if (down("w")) {
+    if (
+        down("w")
+    ) {
+
         moveY -= 1;
     }
 
-    if (down("s")) {
+
+    if (
+        down("s")
+    ) {
+
         moveY += 1;
     }
 
-    if (down("a")) {
+
+    if (
+        down("a")
+    ) {
+
         moveX -= 1;
     }
 
-    if (down("d")) {
+
+    if (
+        down("d")
+    ) {
+
         moveX += 1;
     }
 
@@ -2044,7 +2111,7 @@ function update(delta) {
 
 
     /*
-        Hold Space to fire.
+        Holding SPACE keeps firing.
     */
 
     if (
@@ -2077,8 +2144,8 @@ function update(delta) {
             player.dashY *
             player.dashSpeed *
             delta;
-    }
 
+    }
 
     else {
 
@@ -2096,7 +2163,7 @@ function update(delta) {
 
 
     /*
-        Arena boundaries.
+        Keep player inside arena.
     */
 
     player.x =
@@ -2132,7 +2199,7 @@ function update(delta) {
     const spawnInterval =
         Math.max(
             0.16,
-            1.0 -
+            1 -
             timeAlive *
             0.009
         );
@@ -2164,22 +2231,31 @@ function update(delta) {
             spawnOrb();
         }
 
+
         orbTimer =
             2.5;
     }
 
 
     /* ----------------------------------------------
-       OBJECTS
+       OBJECT UPDATES
     ---------------------------------------------- */
 
-    updateBullets(delta);
+    updateBullets(
+        delta
+    );
 
-    updateEnemies(delta);
+    updateEnemies(
+        delta
+    );
 
-    updateOrbs(delta);
+    updateOrbs(
+        delta
+    );
 
-    updateParticles(delta);
+    updateParticles(
+        delta
+    );
 }
 
 
@@ -2237,14 +2313,6 @@ function updateBullets(
         }
 
 
-        /*
-            Bullet collision.
-        */
-
-        let destroyed =
-            false;
-
-
         for (
             let j =
                 enemies.length - 1;
@@ -2290,10 +2358,6 @@ function updateBullets(
                 );
 
 
-                destroyed =
-                    true;
-
-
                 if (
                     enemy.hp <= 0
                 ) {
@@ -2331,14 +2395,6 @@ function updateBullets(
 
                 break;
             }
-        }
-
-
-        if (
-            destroyed
-        ) {
-
-            continue;
         }
     }
 }
@@ -2404,10 +2460,6 @@ function updateEnemies(
             );
 
 
-        /*
-            Collision with player.
-        */
-
         if (
             distance(
                 player,
@@ -2417,13 +2469,6 @@ function updateEnemies(
             enemy.radius
         ) {
 
-            /*
-                Remove enemy immediately
-                so the player can't take
-                multiple damage from the
-                same enemy.
-            */
-
             enemies.splice(
                 i,
                 1
@@ -2432,6 +2477,7 @@ function updateEnemies(
 
             damagePlayer();
 
+
             if (
                 gameOver
             ) {
@@ -2439,53 +2485,6 @@ function updateEnemies(
                 return;
             }
         }
-    }
-}
-
-
-/* ==================================================
-   PLAYER DAMAGE
-================================================== */
-
-function damagePlayer() {
-
-    player.health -= 1;
-
-
-    makeParticles(
-        player.x,
-        player.y,
-        COLORS.red,
-        30,
-        250
-    );
-
-
-    screenShake =
-        10;
-
-
-    /*
-        Small invulnerability window
-        isn't implemented as a permanent
-        timer, so give the player a short
-        dash-like separation instead.
-    */
-
-    player.x +=
-        player.dashX *
-        20;
-
-    player.y +=
-        player.dashY *
-        20;
-
-
-    if (
-        player.health <= 0
-    ) {
-
-        endGame();
     }
 }
 
@@ -2530,11 +2529,12 @@ function updateOrbs(
         ) {
 
             /*
-                Yellow orbs are now
+                Yellow orb = one
                 shop currency.
             */
 
-            orbs += 1;
+            orbs +=
+                1;
 
 
             makeParticles(
@@ -2551,7 +2551,6 @@ function updateOrbs(
                 1
             );
         }
-
 
         else if (
             orb.life <= 0
@@ -2647,10 +2646,21 @@ function endGame() {
             score;
 
 
-        localStorage.setItem(
-            "neonEscapeHighScore",
-            String(highScore)
-        );
+        try {
+
+            localStorage.setItem(
+                "neonEscapeHighScore",
+                String(highScore)
+            );
+
+        }
+
+        catch (error) {
+
+            /*
+                Ignore storage errors.
+            */
+        }
     }
 
 
@@ -2799,7 +2809,7 @@ function drawBackground() {
 
 
 /* ==================================================
-   PLAYER DRAW
+   PLAYER
 ================================================== */
 
 function drawPlayer() {
@@ -2819,7 +2829,7 @@ function drawPlayer() {
 
 
     /*
-        Cannon
+        Cannon barrel.
     */
 
     ctx.shadowBlur =
@@ -2854,7 +2864,7 @@ function drawPlayer() {
 
 
     /*
-        Ship
+        Ship body.
     */
 
     ctx.shadowBlur =
@@ -2862,7 +2872,6 @@ function drawPlayer() {
 
     ctx.shadowColor =
         COLORS.cyan;
-
 
     ctx.fillStyle =
         COLORS.cyan;
@@ -2896,7 +2905,7 @@ function drawPlayer() {
 
 
     /*
-        Inner ship
+        Inner cockpit.
     */
 
     ctx.shadowBlur =
@@ -2937,7 +2946,7 @@ function drawPlayer() {
 
 
     /*
-        Dash ready ring.
+        Dash-ready indicator.
     */
 
     if (
@@ -2954,7 +2963,9 @@ function drawPlayer() {
         ctx.beginPath();
 
         ctx.arc(
+
             player.x,
+
             player.y,
 
             player.radius +
@@ -2962,9 +2973,11 @@ function drawPlayer() {
             Math.sin(
                 performance.now() /
                 100
-            ) * 2,
+            ) *
+            2,
 
             0,
+
             Math.PI * 2
         );
 
@@ -2974,14 +2987,13 @@ function drawPlayer() {
 
 
 /* ==================================================
-   BULLETS DRAW
+   BULLETS
 ================================================== */
 
 function drawBullets() {
 
     ctx.fillStyle =
         COLORS.white;
-
 
     ctx.shadowBlur =
         14;
@@ -3014,7 +3026,7 @@ function drawBullets() {
 
 
 /* ==================================================
-   ENEMY DRAW
+   ENEMIES
 ================================================== */
 
 function drawEnemies() {
@@ -3051,23 +3063,19 @@ function drawEnemies() {
 
 
         /*
-            Tank
+            Tank.
         */
 
         if (
             enemy.type === "tank"
         ) {
 
-            ctx.beginPath();
-
-            ctx.rect(
+            ctx.fillRect(
                 -enemy.radius,
                 -enemy.radius,
                 enemy.radius * 2,
                 enemy.radius * 2
             );
-
-            ctx.fill();
 
 
             ctx.fillStyle =
@@ -3084,7 +3092,7 @@ function drawEnemies() {
 
 
         /*
-            Fast
+            Fast enemy.
         */
 
         else if (
@@ -3100,14 +3108,12 @@ function drawEnemies() {
 
             ctx.lineTo(
                 -enemy.radius,
-                -enemy.radius *
-                0.65
+                -enemy.radius * 0.65
             );
 
             ctx.lineTo(
                 -enemy.radius,
-                enemy.radius *
-                0.65
+                enemy.radius * 0.65
             );
 
             ctx.closePath();
@@ -3117,7 +3123,7 @@ function drawEnemies() {
 
 
         /*
-            Normal
+            Normal enemy.
         */
 
         else {
@@ -3142,8 +3148,7 @@ function drawEnemies() {
                 const radius =
                     i % 2 === 0
                         ? enemy.radius
-                        : enemy.radius *
-                          0.45;
+                        : enemy.radius * 0.45;
 
 
                 const x =
@@ -3184,7 +3189,7 @@ function drawEnemies() {
 
 
         /*
-            Tank health indicator.
+            Tank health bar.
         */
 
         if (
@@ -3234,7 +3239,7 @@ function drawEnemies() {
 
 
 /* ==================================================
-   ORB DRAW
+   ORBS
 ================================================== */
 
 function drawOrbs() {
@@ -3296,7 +3301,7 @@ function drawOrbs() {
 
 
 /* ==================================================
-   PARTICLES DRAW
+   PARTICLES
 ================================================== */
 
 function drawParticles() {
@@ -3372,7 +3377,7 @@ function drawUI() {
 
 
     /*
-        Health
+        Health.
     */
 
     ctx.fillStyle =
@@ -3399,15 +3404,13 @@ function drawUI() {
     ) {
 
         ctx.fillStyle =
-            i <
-            player.health
+            i < player.health
                 ? COLORS.red
                 : "rgba(255,255,255,.15)";
 
 
         ctx.fillRect(
-            50 +
-            i * 18,
+            50 + i * 18,
             65,
             13,
             10
@@ -3416,7 +3419,7 @@ function drawUI() {
 
 
     /*
-        Orbs
+        Orbs.
     */
 
     ctx.fillStyle =
@@ -3435,7 +3438,7 @@ function drawUI() {
 
 
     /*
-        Best score
+        Right side UI.
     */
 
     ctx.textAlign =
@@ -3456,10 +3459,6 @@ function drawUI() {
         30
     );
 
-
-    /*
-        Shop cooldown.
-    */
 
     if (
         shopCooldown > 0
@@ -3592,17 +3591,27 @@ function drawUI() {
 
 
 /* ==================================================
-   MAIN LOOP
+   GAME LOOP
 ================================================== */
 
 function frame(now) {
 
+    /*
+        The first frame gets a
+        zero delta instead of using
+        an undefined/huge interval.
+    */
+
     const delta =
-        Math.min(
-            (now - lastTime) /
-            1000,
-            0.05
-        );
+        lastTime === 0
+
+            ? 0
+
+            : Math.min(
+                (now - lastTime) /
+                1000,
+                0.05
+            );
 
 
     lastTime =
@@ -3617,6 +3626,12 @@ function frame(now) {
     draw();
 
 
+    /*
+        Schedule the next frame
+        after all game logic and
+        rendering have completed.
+    */
+
     requestAnimationFrame(
         frame
     );
@@ -3624,7 +3639,7 @@ function frame(now) {
 
 
 /* ==================================================
-   START
+   START GAME
 ================================================== */
 
 resize();
