@@ -1,86 +1,211 @@
 "use strict";
 
 const canvas=document.getElementById("game"),ctx=canvas.getContext("2d"),message=document.getElementById("message");
-let W=innerWidth,H=innerHeight,dpr=1,last=0;
-const C={bg:"#05050a",cyan:"#00ffff",red:"#ff1744",yellow:"#ffe600",white:"#fff",pink:"#ff66cc",orange:"#ff9d00",purple:"#a66cff",green:"#66ffcc"};
+let W=0,H=0,dpr=1;
+
+const C={
+ bg:"#05050a",cyan:"#00ffff",red:"#ff1744",yellow:"#ffe600",
+ white:"#fff",pink:"#ff66cc",orange:"#ff9d00",purple:"#a66cff",green:"#66ffcc"
+};
 
 const keys=Object.create(null);
-const prevent=["w","a","s","d","i","j","k","l","arrowup","arrowdown","arrowleft","arrowright"," ","shift","p","r","h","b","v","escape","enter","1","2","3","4","5","6","7","8","9","q","e"];
+const bullets=[],enemies=[],orbsList=[],particles=[],effects=[];
+
+let homeScreen=true,abilityScreen=false,weaponScreen=false;
+let paused=false,gameOver=false;
+let score=0,orbs=0,timeAlive=0,shopCooldown=0,shopDelay=1.5;
+let shake=0,last=0,highScore=0;
+
+/* ---------- RESIZE ---------- */
+
+function resize(){
+ dpr=Math.min(devicePixelRatio||1,2);
+ W=innerWidth;H=innerHeight;
+ canvas.width=W*dpr;canvas.height=H*dpr;
+ canvas.style.width=W+"px";canvas.style.height=H+"px";
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ player.x=Math.max(player.r,Math.min(W-player.r,player.x||W/2));
+ player.y=Math.max(player.r,Math.min(H-player.r,player.y||H/2));
+}
+addEventListener("resize",resize);
+
+/* ---------- INPUT ---------- */
 
 addEventListener("keydown",e=>{
  const k=e.key.toLowerCase();
  keys[k]=true;
- if(prevent.includes(k))e.preventDefault();
+
+ if([
+  "w","a","s","d","i","j","k","l","arrowup","arrowdown",
+  "arrowleft","arrowright"," ","shift","p","r","h","b","v",
+  "escape","enter","1","2","3","4","5","6","7","8","9","q","e"
+ ].includes(k))e.preventDefault();
+
  if(e.repeat)return;
 
- if(weaponScreen){if(k==="escape"||k==="b")home();else weaponKey(k);return}
- if(abilityScreen){if(k==="escape"||k==="b")home();else abilityKey(k);return}
- if(homeScreen){if(k==="enter"||k===" ")start();else if(k==="b")showAbilities();else if(k==="v")showWeapons();return}
- if(gameOver){if(k==="r")start();else if(k==="h")home();return}
+ if(weaponScreen){
+  if(k==="escape"||k==="b")showHome();
+  else weaponKey(k);
+  return;
+ }
+
+ if(abilityScreen){
+  if(k==="escape"||k==="b")showHome();
+  else abilityKey(k);
+  return;
+ }
+
+ if(homeScreen){
+  if(k==="enter"||k===" ")startRound();
+  else if(k==="b")showAbilities();
+  else if(k==="v")showWeapons();
+  return;
+ }
+
+ if(gameOver){
+  if(k==="r")restart();
+  else if(k==="h")goHome();
+  return;
+ }
 
  if(k==="p")toggleShop();
- if(k===" ")shoot();
- if(k==="shift")dash();
+ else if(k===" ")shoot();
+ else if(k==="shift")dash();
 });
 
 addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 addEventListener("blur",()=>Object.keys(keys).forEach(k=>keys[k]=false));
 
-let homeScreen=true,abilityScreen=false,weaponScreen=false,paused=false,gameOver=false;
-let score=0,orbs=0,timeAlive=0,spawnTimer=0,orbTimer=0,shopCooldown=0,shopDelay=1.5,shake=0,highScore=0;
-
-try{highScore=+localStorage.getItem("neonHighScore")||0}catch(e){}
+/* ---------- PLAYER ---------- */
 
 const player={
- x:W/2,y:H/2,r:14,health:3,maxHealth:3,moveSpeed:300,
- aim:0,aimX:1,aimY:0,fireCooldown:0,fireRate:.16,damage:1,
- bulletSpeed:850,dashCooldown:0,dashMax:1.1,dashTime:0,
- dashDuration:.12,dashSpeed:1000,dashX:1,dashY:0,
+ x:W/2,y:H/2,r:14,
+ health:3,maxHealth:3,moveSpeed:300,
+ aim:0,aimX:1,aimY:0,
+ fireCooldown:0,fireRate:.16,damage:1,
+ bulletSpeed:850,
+ dashCooldown:0,dashMax:1.1,dashTime:0,
+ dashDuration:.12,dashSpeed:1000,
+ dashX:1,dashY:0,
  emergencyShield:false,pickups:0
 };
 
-const bullets=[],enemies=[],orbList=[],particles=[];
+/* ---------- WAVE STATE ---------- */
+
+const wave={
+ number:0,
+ active:false,
+ calm:false,
+ calmTime:0,
+ spawnLeft:0,
+ spawned:0,
+ total:0,
+ spawnTimer:0
+};
+
+const CALM_TIME=4;
+const BASE_WAVE_SIZE=6;
+
+function waveSize(){
+ return BASE_WAVE_SIZE+Math.min(18,wave.number*2);
+}
+
+function waveSpawnInterval(){
+ return Math.max(.28,.82-wave.number*.025);
+}
+
+function waveEnemySpeed(){
+ return Math.min(2.25,1+(wave.number-1)*.075);
+}
+
+function beginWave(){
+ wave.number++;
+ wave.active=true;
+ wave.calm=false;
+ wave.calmTime=0;
+ wave.total=waveSize();
+ wave.spawnLeft=wave.total;
+ wave.spawned=0;
+ wave.spawnTimer=.8;
+}
+
+function beginCalm(){
+ wave.active=false;
+ wave.calm=true;
+ wave.calmTime=CALM_TIME;
+ wave.spawnLeft=0;
+ wave.spawned=0;
+ wave.total=0;
+}
+
+function updateWave(dt){
+ if(wave.calm){
+  wave.calmTime-=dt;
+  if(wave.calmTime<=0)beginWave();
+  return;
+ }
+
+ if(!wave.active){
+  beginWave();
+  return;
+ }
+
+ if(wave.spawnLeft>0){
+  wave.spawnTimer-=dt;
+
+  if(wave.spawnTimer<=0){
+   spawnEnemy();
+   wave.spawnLeft--;
+   wave.spawned++;
+   wave.spawnTimer=waveSpawnInterval();
+  }
+ }else if(!enemies.length){
+  beginCalm();
+ }
+}
+
+/* ---------- WEAPONS ---------- */
 
 const WEAPONS=[
- {id:"pulse",name:"PULSE CANNON",color:C.cyan,desc:"Balanced energy weapon with reliable damage and fire rate.",rate:.16,damage:1,speed:850,life:1.25},
- {id:"rail",name:"RAILGUN",color:C.orange,desc:"Heavy piercing round. Slow, but it can pass through enemies.",rate:.55,damage:4,speed:1400,life:1.2,pierce:2},
- {id:"scatter",name:"BLAST SHOTGUN",color:C.pink,desc:"Fires a wide cone of low-damage pellets.",rate:.28,damage:.55,speed:800,life:.9,pellets:7,spread:.72},
- {id:"laser",name:"LASER",color:"#ff3355",desc:"Rapid beam that pierces enemies and stays active briefly.",rate:.12,damage:.7,speed:1900,life:.28,pierce:4,laser:true},
- {id:"missile",name:"MISSILE LAUNCHER",color:C.purple,desc:"Slow rockets that explode on impact.",rate:.48,damage:3,speed:500,life:2.2,explosion:58},
- {id:"arc",name:"ARC CASTER",color:C.green,desc:"Electrical shots jump between nearby enemies.",rate:.24,damage:1.2,speed:1000,life:1.1,chain:2,chainRange:125}
+ {
+  id:"pulse",name:"PULSE CANNON",color:C.cyan,
+  desc:"Balanced energy weapon with reliable damage and fire rate.",
+  rate:.16,damage:1,speed:850,life:1.25
+ },
+ {
+  id:"rail",name:"RAILGUN",color:C.orange,
+  desc:"Heavy piercing round. Slow, but it can pass through enemies.",
+  rate:.55,damage:4,speed:1400,life:1.2,pierce:2
+ },
+ {
+  id:"scatter",name:"BLAST SHOTGUN",color:C.pink,
+  desc:"Fires a wide cone of low-damage pellets.",
+  rate:.28,damage:.55,speed:800,life:.9,pellets:7,spread:.72
+ },
+ {
+  id:"laser",name:"LASER",color:"#ff3355",
+  desc:"Rapid beam that pierces enemies and stays active briefly.",
+  rate:.12,damage:.7,speed:1900,life:.28,pierce:4,laser:true
+ },
+ {
+  id:"missile",name:"MISSILE LAUNCHER",color:C.purple,
+  desc:"Slow rockets that explode on impact.",
+  rate:.48,damage:3,speed:500,life:2.2,explosion:58
+ },
+ {
+  id:"arc",name:"ARC CASTER",color:C.green,
+  desc:"Electrical shots jump between nearby enemies.",
+  rate:.24,damage:1.2,speed:1000,life:1.1,chain:2,chainRange:125
+ }
 ];
 
-const ABILITIES=[
- {id:"hull",name:"REINFORCED HULL",desc:"Start with +1 maximum health.",color:"#ff5555"},
- {id:"shield",name:"EMERGENCY SHIELD",desc:"The first collision each run causes no damage.",color:"#66ccff"},
- {id:"magnet",name:"MAGNETIC CORE",desc:"Attract yellow orbs from 85 pixels away.",color:C.yellow},
- {id:"scavenger",name:"SCAVENGER",desc:"Kills have a 12% chance to create an extra orb.",color:C.yellow},
- {id:"quickstart",name:"QUICK START",desc:"Enemy spawning is 25% slower for the first five seconds.",color:C.cyan},
- {id:"overcharge",name:"OVERCHARGED CORE",desc:"Weapon damage is increased by 15%.",color:C.orange},
- {id:"stabilizers",name:"STABILIZERS",desc:"Movement speed is increased by 10%.",color:"#00ff88"},
- {id:"afterburner",name:"AFTERBURNER",desc:"Dash cooldown is reduced by 12%.",color:C.purple},
- {id:"quickhands",name:"QUICK HANDS",desc:"Weapon firing delay is reduced by 10%.",color:C.cyan},
- {id:"barrel",name:"THICK BARREL",desc:"Projectile speed and lifetime are increased.",color:"#ff7b00"},
- {id:"collector",name:"COLLECTOR",desc:"Every fifth orb collected gives an additional orb.",color:C.yellow},
- {id:"laststand",name:"LAST STAND",desc:"At 1 HP, movement speed increases by 20%.",color:C.red},
- {id:"training",name:"COMBAT TRAINING",desc:"Enemy collisions knock you backward.",color:C.white}
-];
-
-let selectedWeapon="pulse",abilities=[null,null],wLevels={};
+let selectedWeapon="pulse";
 
 try{
- const w=localStorage.getItem("neonWeapon");
- if(WEAPONS.some(x=>x.id===w))selectedWeapon=w;
- const a=JSON.parse(localStorage.getItem("neonAbilities")||"null");
- if(Array.isArray(a)&&a.length===2)abilities=a.map(x=>ABILITIES.some(y=>y.id===x)?x:null);
+ const saved=localStorage.getItem("neonWeapon");
+ if(WEAPONS.some(w=>w.id===saved))selectedWeapon=saved;
+ highScore=+localStorage.getItem("neonHighScore")||0;
 }catch(e){}
-
-const general={
- rapid:{name:"RAPID FIRE",desc:"20% less weapon delay per level.",cost:3,max:3,level:0},
- heavy:{name:"HEAVY WEAPON",desc:"+1 base damage per level.",cost:5,max:2,level:0},
- thrusters:{name:"THRUSTERS",desc:"+15% movement speed per level.",cost:4,max:3,level:0},
- overdrive:{name:"OVERDRIVE",desc:"20% less dash cooldown per level.",cost:6,max:2,level:0}
-};
 
 const weaponUpgrades={
  pulse:[
@@ -115,19 +240,68 @@ const weaponUpgrades={
  ]
 };
 
-function weapon(){return WEAPONS.find(w=>w.id===selectedWeapon)||WEAPONS[0]}
-function has(id){return abilities.includes(id)}
-function lvl(id){return wLevels[id]||0}
+let wLevels={};
 
 function resetWeaponLevels(){
  wLevels={};
  weaponUpgrades[selectedWeapon].forEach(u=>wLevels[u.id]=0);
 }
 
+resetWeaponLevels();
+
+function weapon(){
+ return WEAPONS.find(w=>w.id===selectedWeapon)||WEAPONS[0];
+}
+
+function lvl(id){return wLevels[id]||0}
+
+/* ---------- ABILITIES ---------- */
+
+const ABILITIES=[
+ {id:"hull",name:"REINFORCED HULL",desc:"Start with +1 maximum health.",color:"#ff5555"},
+ {id:"shield",name:"EMERGENCY SHIELD",desc:"The first collision each run causes no damage.",color:"#66ccff"},
+ {id:"magnet",name:"MAGNETIC CORE",desc:"Attract yellow orbs from 85 pixels away.",color:C.yellow},
+ {id:"scavenger",name:"SCAVENGER",desc:"Kills have a 12% chance to create an extra orb.",color:C.yellow},
+ {id:"quickstart",name:"QUICK START",desc:"Enemy spawning is 25% slower for the first five seconds.",color:C.cyan},
+ {id:"overcharge",name:"OVERCHARGED CORE",desc:"Weapon damage is increased by 15%.",color:C.orange},
+ {id:"stabilizers",name:"STABILIZERS",desc:"Movement speed is increased by 10%.",color:"#66ffcc"},
+ {id:"afterburner",name:"AFTERBURNER",desc:"Dash cooldown is reduced by 12%.",color:C.purple},
+ {id:"quickhands",name:"QUICK HANDS",desc:"Weapon firing delay is reduced by 10%.",color:C.cyan},
+ {id:"barrel",name:"THICK BARREL",desc:"Projectile speed and lifetime are increased.",color:"#ff7b00"},
+ {id:"collector",name:"COLLECTOR",desc:"Every fifth orb collected gives an additional orb.",color:C.yellow},
+ {id:"laststand",name:"LAST STAND",desc:"At 1 HP, movement speed increases by 20%.",color:C.red},
+ {id:"training",name:"COMBAT TRAINING",desc:"Enemy collisions knock you backward.",color:C.white}
+];
+
+let abilities=[null,null];
+
+try{
+ const a=JSON.parse(localStorage.getItem("neonAbilities")||"null");
+ if(Array.isArray(a)&&a.length===2)
+  abilities=a.map(x=>ABILITIES.some(a=>a.id===x)?x:null);
+}catch(e){}
+
+function has(id){return abilities.includes(id)}
+function abilitySlot(id){return abilities.indexOf(id)}
+function saveAbilities(){
+ try{localStorage.setItem("neonAbilities",JSON.stringify(abilities))}catch(e){}
+}
+
+/* ---------- UPGRADES ---------- */
+
+const general={
+ rapid:{name:"RAPID FIRE",desc:"20% less weapon delay per level.",cost:3,max:3,level:0},
+ heavy:{name:"HEAVY WEAPON",desc:"+1 base damage per level.",cost:5,max:2,level:0},
+ thrusters:{name:"THRUSTERS",desc:"+15% movement speed per level.",cost:4,max:3,level:0},
+ overdrive:{name:"OVERDRIVE",desc:"20% less dash cooldown per level.",cost:6,max:2,level:0}
+};
+
 function applyUpgrades(){
  const w=weapon();
- let rate=w.rate*Math.pow(.8,general.rapid.level);
+
+ let rate=w.rate;
  if(has("quickhands"))rate*=.9;
+ rate*=Math.pow(.8,general.rapid.level);
  if(selectedWeapon==="pulse")rate*=Math.pow(.8,lvl("pulseOverclock"));
  player.fireRate=rate;
 
@@ -141,46 +315,90 @@ function applyUpgrades(){
  player.damage=damage;
 
  player.moveSpeed=300*(has("stabilizers")?1.1:1)*(1+.15*general.thrusters.level);
- player.dashMax=1.1*(has("afterburner")?.88:1)*Math.pow(.8,general.overdrive.level);
- player.bulletSpeed=w.speed*(has("barrel")?1.12:1);
 
+ let dash=1.1;
+ if(has("afterburner"))dash*=.88;
+ dash*=Math.pow(.8,general.overdrive.level);
+ player.dashMax=dash;
+
+ player.bulletSpeed=w.speed*(has("barrel")?1.12:1);
  if(selectedWeapon==="rail")player.bulletSpeed*=1+.25*lvl("railAccelerator");
  if(selectedWeapon==="missile")player.bulletSpeed*=1+.25*lvl("missileFuel");
 }
 
+function resetUpgrades(){
+ Object.values(general).forEach(x=>x.level=0);
+ resetWeaponLevels();
+ applyUpgrades();
+}
+
+/* ---------- ROUND ---------- */
+
 function clearObjects(){
- bullets.length=enemies.length=orbList.length=particles.length=0;
+ bullets.length=0;
+ enemies.length=0;
+ orbsList.length=0;
+ particles.length=0;
+ effects.length=0;
 }
 
 function resetPlayer(){
  player.maxHealth=has("hull")?4:3;
  player.health=player.maxHealth;
  player.x=W/2;player.y=H/2;
- player.fireCooldown=player.dashCooldown=player.dashTime=0;
- player.aim=0;player.aimX=1;player.aimY=0;
- player.dashX=1;player.dashY=0;
- player.emergencyShield=false;player.pickups=0;
+ player.fireCooldown=0;
+ player.dashCooldown=0;
+ player.dashTime=0;
+ player.aim=0;
+ player.aimX=1;
+ player.aimY=0;
+ player.dashX=1;
+ player.dashY=0;
+ player.emergencyShield=false;
+ player.pickups=0;
 }
 
-function start(){
+function resetWave(){
+ wave.number=0;
+ wave.active=false;
+ wave.calm=false;
+ wave.calmTime=0;
+ wave.spawnLeft=0;
+ wave.spawned=0;
+ wave.total=0;
+ wave.spawnTimer=0;
+}
+
+function startRound(){
  homeScreen=abilityScreen=weaponScreen=paused=gameOver=false;
  score=orbs=timeAlive=0;
- spawnTimer=.25;orbTimer=getOrbInterval();
- shopCooldown=0;shopDelay=1.5;shake=0;last=0;
- clearObjects();resetPlayer();resetWeaponLevels();applyUpgrades();
+ shopCooldown=0;
+ shopDelay=1.5;
+ shake=0;
+ last=0;
 
- // Explicitly remove every menu/death/shop overlay.
- message.classList.remove("show");
- message.innerHTML="";
+ clearObjects();
+ resetWave();
+ resetPlayer();
+ resetUpgrades();
+ beginWave();
+ updateMessage();
 }
 
-function home(){
+function restart(){startRound()}
+
+function goHome(){
  homeScreen=true;
  abilityScreen=weaponScreen=paused=gameOver=false;
  last=0;
  clearObjects();
+ resetWave();
  updateMessage();
 }
+
+function showHome(){goHome()}
+
+/* ---------- MENU ---------- */
 
 function showAbilities(){
  if(!homeScreen)return;
@@ -198,51 +416,62 @@ function selectWeapon(id){
  if(!WEAPONS.some(w=>w.id===id))return;
  selectedWeapon=id;
  resetWeaponLevels();
+ applyUpgrades();
  try{localStorage.setItem("neonWeapon",id)}catch(e){}
  updateWeaponMessage();
 }
 
 function weaponKey(k){
- const i="123456".indexOf(k);
- if(i>=0)selectWeapon(WEAPONS[i].id);
+ const n="123456".indexOf(k);
+ if(n>=0)selectWeapon(WEAPONS[n].id);
 }
 
 function toggleAbility(i){
  if(i<0||i>=ABILITIES.length)return;
- const id=ABILITIES[i].id,old=abilities.indexOf(id);
 
- if(old>=0)abilities[old]=null;
- else{
-  const slot=abilities.indexOf(null);
-  if(slot<0)return;
-  abilities[slot]=id;
+ const id=ABILITIES[i].id,old=abilitySlot(id);
+
+ if(old>=0){
+  abilities[old]=null;
+  saveAbilities();
+  updateAbilityMessage();
+  return;
  }
 
- try{localStorage.setItem("neonAbilities",JSON.stringify(abilities))}catch(e){}
- updateAbilityMessage();
+ const slot=abilities.indexOf(null);
+ if(slot>=0){
+  abilities[slot]=id;
+  saveAbilities();
+  updateAbilityMessage();
+ }
 }
 
 function abilityKey(k){
- const map={1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8,q:9,w:10,e:11,r:12};
+ const map={"1":0,"2":1,"3":2,"4":3,"5":4,"6":5,"7":6,"8":7,"9":8,q:9,w:10,e:11,r:12};
  if(map[k]!==undefined)toggleAbility(map[k]);
 }
 
+/* ---------- MENU HTML ---------- */
+
 function updateAbilityMessage(){
  message.innerHTML=`
- <h1 style="color:${C.cyan}">ABILITIES</h1>
+ <h1 style="color:#00ffff">ABILITIES</h1>
  <p>Choose two permanent abilities. They remain active in every new run.</p>
- <div class="grid">${ABILITIES.map((a,i)=>{
-  const s=has(a.id),slot=abilities.indexOf(a.id);
+ <div class="grid">
+ ${ABILITIES.map((a,i)=>{
+  const selected=has(a.id),slot=abilitySlot(a.id);
   const key=i<9?i+1:["Q","W","E","R"][i-9];
-  return `<div class="card ${s?"selected":""}" onclick="toggleAbility(${i})">
-   <span class="key">${key}</span>
-   <h3 style="color:${s?C.yellow:a.color}">${a.name}</h3>
-   <p>${a.desc}</p>
-   ${s?`<span class="label">EQUIPPED — SLOT ${slot+1}</span>`:""}
-  </div>`;
- }).join("")}</div>
+  return `
+   <div class="card ${selected?"selected":""}" onclick="toggleAbility(${i})">
+    <span class="key">${key}</span>
+    <h3 style="color:${selected?C.yellow:a.color}">${a.name}</h3>
+    <p>${a.desc}</p>
+    ${selected?`<span class="label">EQUIPPED — SLOT ${slot+1}</span>`:""}
+   </div>`;
+ }).join("")}
+ </div>
  <p style="font-size:12px;color:#777">Keyboard: 1–9, Q, W, E, R</p>
- <button class="main-button secondary-button" onclick="home()">BACK TO HOME</button>`;
+ <button class="main-button secondary-button" onclick="showHome()">BACK TO HOME</button>`;
 
  message.classList.add("show");
 }
@@ -253,23 +482,27 @@ function updateWeaponMessage(){
  message.innerHTML=`
  <h1 style="color:${w.color}">WEAPONS</h1>
  <p>Choose one permanent weapon. Weapon-specific Armory upgrades only last for the current run.</p>
- <div class="grid">${WEAPONS.map((x,i)=>`
+ <div class="grid">
+ ${WEAPONS.map((x,i)=>`
   <div class="card ${x.id===selectedWeapon?"selected":""}" onclick="selectWeapon('${x.id}')">
    <span class="key">${i+1}</span>
    <h3 style="color:${x.color}">${x.name}</h3>
    <p>${x.desc}</p>
    <p>Damage ${x.damage} · Fire ${x.rate.toFixed(2)}s</p>
    ${x.id===selectedWeapon?'<span class="label">EQUIPPED</span>':""}
-  </div>`).join("")}</div>
+  </div>`).join("")}
+ </div>
  <p style="font-size:12px;color:#777">Keyboard: 1–6</p>
- <button class="main-button secondary-button" onclick="home()">BACK TO HOME</button>`;
+ <button class="main-button secondary-button" onclick="showHome()">BACK TO HOME</button>`;
 
  message.classList.add("show");
 }
 
 function shopItem(id,name,desc,cost,max,level,color){
  const can=orbs>=cost&&level<max;
- return `<div class="card shop">
+
+ return `
+ <div class="card shop">
   <h3 style="color:${color}">${name}</h3>
   <p>${desc}<br>Level ${level}/${max}</p>
   <button onclick="buyUpgrade('${id}')" ${can?"":"disabled"}>
@@ -283,22 +516,21 @@ function updateShopMessage(){
  const cd=shopCooldown>0?`Cooldown: ${shopCooldown.toFixed(1)}s`:"SHOP READY";
 
  let html=`
- <h1 style="color:${C.cyan}">ARMORY</h1>
- <p>Yellow orbs: <strong style="color:${C.yellow}">${orbs}</strong></p>
+ <h1 style="color:#00ffff">ARMORY</h1>
+ <p>Yellow orbs: <strong style="color:#ffe600">${orbs}</strong></p>
  <p style="font-size:12px;color:#777">${cd} · Press P to close</p>
  <h2 style="font-size:15px;color:${w.color}">${w.name} UPGRADES</h2>
  <div class="grid">`;
 
- for(const [id,u] of Object.entries(general))
-  html+=shopItem(id,u.name,u.desc,u.cost,u.max,u.level,
-   id==="heavy"?C.orange:id==="thrusters"?"#00ff88":id==="overdrive"?C.purple:C.cyan);
+ html+=shopItem("rapid","RAPID FIRE",general.rapid.desc,general.rapid.cost,general.rapid.max,general.rapid.level,C.cyan);
+ html+=shopItem("heavy","HEAVY WEAPON",general.heavy.desc,general.heavy.cost,general.heavy.max,general.heavy.level,C.orange);
+ html+=shopItem("thrusters","THRUSTERS",general.thrusters.desc,general.thrusters.cost,general.thrusters.max,general.thrusters.level,"#00ff88");
+ html+=shopItem("overdrive","OVERDRIVE",general.overdrive.desc,general.overdrive.cost,general.overdrive.max,general.overdrive.level,C.purple);
+ html+=shopItem("repair","REPAIR","Restore one health point.",2,1,player.health>=player.maxHealth?1:0,C.red);
 
- html+=shopItem("repair","REPAIR","Restore one health point.",2,1,
-  player.health>=player.maxHealth?1:0,C.red);
-
- weaponUpgrades[selectedWeapon].forEach(u=>
-  html+=shopItem(u.id,u.name,u.desc,u.cost,u.max,lvl(u.id),w.color)
- );
+ weaponUpgrades[selectedWeapon].forEach(u=>{
+  html+=shopItem(u.id,u.name,u.desc,u.cost,u.max,lvl(u.id),w.color);
+ });
 
  message.innerHTML=html+"</div>";
  message.classList.add("show");
@@ -309,7 +541,7 @@ function toggleShop(){
 
  if(paused){
   paused=false;
-  message.classList.remove("show");
+  updateMessage();
   return;
  }
 
@@ -335,7 +567,9 @@ function buyUpgrade(id){
 
  if(general[id]){
   const u=general[id];
+
   if(u.level>=u.max||orbs<u.cost)return;
+
   orbs-=u.cost;
   u.level++;
   applyUpgrades();
@@ -354,13 +588,48 @@ function buyUpgrade(id){
  updateShopMessage();
 }
 
-window.start=start;
-window.home=home;
-window.showAbilities=showAbilities;
-window.showWeapons=showWeapons;
-window.toggleAbility=toggleAbility;
-window.selectWeapon=selectWeapon;
-window.buyUpgrade=buyUpgrade;
+/* ---------- MAIN MESSAGE ---------- */
+
+function updateMessage(){
+ if(abilityScreen){updateAbilityMessage();return}
+ if(weaponScreen){updateWeaponMessage();return}
+
+ if(homeScreen){
+  message.innerHTML=`
+   <h1 style="color:#00ffff">NEON ESCAPE</h1>
+   <p>Survive waves, destroy enemies, collect yellow orbs and spend them in the Armory.</p>
+   <div class="home-buttons">
+    <button class="main-button" onclick="startRound()">PLAY ROUND</button>
+    <button class="main-button secondary-button" onclick="showAbilities()">PERMANENT ABILITIES</button>
+    <button class="main-button secondary-button" onclick="showWeapons()">WEAPONS</button>
+   </div>
+   <p style="font-size:12px;color:#777">ENTER / SPACE — Play · B — Abilities · V — Weapons</p>`;
+  message.classList.add("show");
+  return;
+ }
+
+ if(gameOver){
+  message.innerHTML=`
+   <h1 style="color:#ff1744">GAME OVER</h1>
+   <p>Score: <strong>${score}</strong></p>
+   <p>Best: <strong>${highScore}</strong></p>
+   <p>Orbs collected: <strong>${orbs}</strong></p>
+   <button class="main-button" onclick="restart()">PLAY AGAIN</button>
+   <button class="main-button secondary-button" onclick="goHome()">HOME</button>
+   <p style="font-size:12px;color:#777">R — Play Again · H — Home</p>`;
+  message.classList.add("show");
+  return;
+ }
+
+ if(paused){
+  updateShopMessage();
+  return;
+ }
+
+ message.classList.remove("show");
+}
+
+/* ---------- SPAWNING ---------- */
 
 function edge(m=50){
  switch(Math.floor(Math.random()*4)){
@@ -371,67 +640,140 @@ function edge(m=50){
  }
 }
 
-function enemyInterval(){return Math.max(.16,1-timeAlive*.009)}
-function getOrbInterval(){return Math.max(.65,2.5*enemyInterval())}
-
 function spawnEnemy(){
- const p=edge(),d=1+timeAlive/30,r=Math.random();
- let e={x:p.x,y:p.y,rot:Math.random()*7,flash:0};
+ const p=edge(),difficulty=waveEnemySpeed(),r=Math.random();
 
- if(timeAlive>20&&r<.2)
-  Object.assign(e,{type:"fast",r:9,speed:115*d,hp:1,points:150});
- else if(timeAlive>45&&r>.82)
-  Object.assign(e,{type:"tank",r:22,speed:42*d,hp:3,maxHp:3,points:400});
- else
-  Object.assign(e,{type:"normal",r:14,speed:62*d,hp:1,points:100});
+ let e={
+  x:p.x,y:p.y,rot:Math.random()*7,flash:0,
+  hitR:14
+ };
+
+ if(wave.number>=2&&r<.22){
+  /*
+   Visual radius remains small, but collision radius is larger.
+   This makes the fast enemy less frustrating to hit.
+  */
+  e.type="fast";
+  e.r=9;
+  e.hitR=14;
+  e.speed=100*difficulty;
+  e.hp=1;
+  e.points=150;
+ }else if(wave.number>=4&&r>.82){
+  e.type="tank";
+  e.r=22;
+  e.hitR=22;
+  e.speed=42*difficulty;
+  e.hp=3+Math.floor(wave.number/6);
+  e.maxHp=e.hp;
+  e.points=400+wave.number*25;
+ }else{
+  e.type="normal";
+  e.r=14;
+  e.hitR=14;
+  e.speed=62*difficulty;
+  e.hp=1;
+  e.points=100+wave.number*8;
+ }
 
  enemies.push(e);
 }
 
 function spawnOrb(){
  const p=70;
- orbList.push({
+
+ orbsList.push({
   x:p+Math.random()*Math.max(1,W-p*2),
   y:p+Math.random()*Math.max(1,H-p*2),
   r:7,p:Math.random()*7,life:8
  });
 }
 
+/* ---------- EFFECTS ---------- */
+
 function burst(x,y,color,n=10,speed=150){
  for(let i=0;i<n;i++){
-  const a=Math.random()*Math.PI*2,v=speed*(.3+Math.random()*.7);
+  const a=Math.random()*Math.PI*2;
+  const v=speed*(.3+Math.random()*.7);
+
   particles.push({
-   x,y,dx:Math.cos(a)*v,dy:Math.sin(a)*v,
-   life:.3+Math.random()*.5,max:.8,size:1.5+Math.random()*3,color
+   x,y,
+   dx:Math.cos(a)*v,
+   dy:Math.sin(a)*v,
+   life:.3+Math.random()*.5,
+   max:.8,
+   size:1.5+Math.random()*3,
+   color
   });
  }
 }
 
-function flash(x,y,color,size=20){
- particles.push({x,y,dx:0,dy:0,life:.12,max:.12,size,color});
+function explosionEffect(x,y,r,color=C.purple){
+ effects.push({
+  type:"explosion",
+  x,y,r,
+  t:0,
+  life:.32,
+  color
+ });
+
+ burst(x,y,color,24,280);
 }
 
-function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function lightning(x1,y1,x2,y2,color=C.green){
+ effects.push({
+  type:"lightning",
+  x1,y1,x2,y2,
+  t:0,
+  life:.22,
+  color
+ });
+}
+
+function dist(a,b){
+ return Math.hypot(a.x-b.x,a.y-b.y);
+}
+
+/* ---------- COLLISION ---------- */
+
+/*
+ Segment-circle collision fixes the laser's high-speed tunnelling problem.
+ A projectile can move through an enemy between frames, so checking only
+ its new position is insufficient.
+*/
+function segmentCircle(x1,y1,x2,y2,cx,cy,r){
+ const dx=x2-x1,dy=y2-y1;
+ const len2=dx*dx+dy*dy;
+
+ if(!len2)return (x1-cx)**2+(y1-cy)**2<=r*r;
+
+ let t=((cx-x1)*dx+(cy-y1)*dy)/len2;
+ t=Math.max(0,Math.min(1,t));
+
+ const px=x1+dx*t,py=y1+dy*t;
+ return (px-cx)**2+(py-cy)**2<=r*r;
+}
+
+/* ---------- COMBAT ---------- */
 
 function makeBullet(angle,damage,extra={}){
- const m=31,w=weapon();
+ const x=player.x+Math.cos(angle)*31;
+ const y=player.y+Math.sin(angle)*31;
 
  bullets.push({
-  x:player.x+Math.cos(angle)*m,
-  y:player.y+Math.sin(angle)*m,
-  dx:Math.cos(angle),dy:Math.sin(angle),
+  x,y,px:x,py:y,
+  dx:Math.cos(angle),
+  dy:Math.sin(angle),
   r:extra.r||4,
   speed:extra.speed||player.bulletSpeed,
-  damage,life:extra.life||1.25,
+  damage,
+  life:extra.life||1.25,
   pierce:extra.pierce||0,
   explosion:extra.explosion||0,
   chain:extra.chain||0,
   chainRange:extra.chainRange||125,
   laser:!!extra.laser,
-  type:w.id,
-  color:w.color,
-  hit:new Set(),
-  trail:0
+  hit:new Set()
  });
 }
 
@@ -441,57 +783,62 @@ function shoot(){
  const w=weapon();
 
  if(w.id==="scatter"){
-  const n=w.pellets+2*lvl("scatterBurst");
+  const n=7+2*lvl("scatterBurst");
   const spread=w.spread*(1+.2*lvl("scatterWide"));
 
   for(let i=0;i<n;i++){
    const a=player.aim+(n===1?0:(i/(n-1)-.5)*spread);
-   makeBullet(a,player.damage*(.5+.15*lvl("scatterBuckshot")),{
-    speed:player.bulletSpeed,life:w.life,r:3
-   });
+
+   makeBullet(
+    a,
+    player.damage*(.5+.15*lvl("scatterBuckshot")),
+    {speed:player.bulletSpeed,life:w.life,r:3}
+   );
   }
 
-  muzzle(C.pink,30,16);
+  burst(
+   player.x+player.aimX*30,
+   player.y+player.aimY*30,
+   C.pink,14,230
+  );
  }else{
-  const x={
+  const extra={
    speed:player.bulletSpeed,
    life:w.life,
    pierce:w.pierce||0,
    laser:w.laser
   };
 
-  if(w.id==="rail")x.pierce+=lvl("railPenetrator");
+  if(w.id==="rail")
+   extra.pierce+=lvl("railPenetrator");
+
   if(w.id==="laser"){
-   x.life*=1+.25*lvl("laserReach");
-   x.pierce+=2*lvl("laserPhase");
-   x.r=3;
-  }
-  if(w.id==="missile")x.explosion=w.explosion+18*lvl("missileWarhead");
-  if(w.id==="arc"){
-   x.chain=w.chain+lvl("arcChain");
-   x.chainRange=w.chainRange+25*lvl("arcReach");
+   extra.life*=1+.25*lvl("laserReach");
+   extra.pierce+=2*lvl("laserPhase");
+   extra.r=5;
   }
 
-  makeBullet(player.aim,player.damage,x);
-  muzzle(w.color,30,w.id==="missile"?20:10);
+  if(w.id==="missile")
+   extra.explosion=w.explosion+18*lvl("missileWarhead");
+
+  if(w.id==="arc"){
+   extra.chain=w.chain+lvl("arcChain");
+   extra.chainRange=w.chainRange+25*lvl("arcReach");
+  }
+
+  makeBullet(player.aim,player.damage,extra);
+
+  burst(
+   player.x+player.aimX*30,
+   player.y+player.aimY*30,
+   w.color,
+   w.id==="missile"?10:6,
+   190
+  );
  }
 
  player.fireCooldown=player.fireRate;
  shake=Math.max(shake,w.id==="missile"?4:2);
-}
-
-function muzzle(color,length=30,n=8){
- burst(
-  player.x+player.aimX*length,
-  player.y+player.aimY*length,
-  color,n,190
- );
- flash(
-  player.x+player.aimX*length,
-  player.y+player.aimY*length,
-  color,
-  16
- );
 }
 
 function dash(){
@@ -499,12 +846,18 @@ function dash(){
 
  let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
  let y=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
- const n=Math.hypot(x,y);
+ let n=Math.hypot(x,y);
 
- if(!n){x=player.dashX;y=player.dashY}
- else{x/=n;y/=n}
+ if(!n){
+  x=player.dashX;
+  y=player.dashY;
+ }else{
+  x/=n;
+  y/=n;
+ }
 
- player.dashX=x;player.dashY=y;
+ player.dashX=x;
+ player.dashY=y;
  player.dashTime=player.dashDuration;
  player.dashCooldown=player.dashMax;
 
@@ -527,86 +880,110 @@ function hitPlayer(){
 }
 
 function explode(x,y,r,damage,source){
- burst(x,y,C.purple,22,260);
- flash(x,y,C.purple,r);
- shake=Math.max(shake,7);
+ explosionEffect(x,y,r);
 
  for(let i=enemies.length-1;i>=0;i--){
   const e=enemies[i];
-  if(dist({x,y},e)>r+e.r)continue;
-  if(source?.hit?.has(e))continue;
-  source?.hit?.add(e);
 
-  e.hp-=damage;
-  e.flash=.08;
+  if(dist({x,y},e)<=r+e.hitR){
+   if(source&&source.hit&&source.hit.has(e))continue;
+   if(source&&source.hit)source.hit.add(e);
 
-  if(e.hp<=0)killEnemy(i);
+   e.hp-=damage;
+   e.flash=.08;
+
+   if(e.hp<=0)killEnemy(i);
+  }
  }
 }
 
+/*
+ The previous implementation represented the chain as a particle with
+ only a length. That could not render arbitrary directions correctly.
+
+ Now every lightning segment has explicit start/end coordinates.
+*/
 function chainAttack(x,y,damage,jumps,range,exclude){
- let from={x,y},used=new Set(exclude||[]);
+ let from={x,y};
+ const used=new Set(exclude||[]);
 
  for(let n=0;n<jumps;n++){
-  let best=-1,bestD=range+1;
+  let best=-1,bestD=range;
 
   for(let i=0;i<enemies.length;i++){
-   if(used.has(enemies[i]))continue;
-   const d=dist(from,enemies[i]);
-   if(d<bestD){bestD=d;best=i}
+   const e=enemies[i];
+   if(used.has(e))continue;
+
+   const d=dist(from,e);
+   if(d<bestD){
+    bestD=d;
+    best=i;
+   }
   }
 
   if(best<0)break;
 
   const e=enemies[best];
   used.add(e);
+
+  lightning(from.x,from.y,e.x,e.y,C.green);
+
   e.hp-=damage;
   e.flash=.1;
-
-  particles.push({
-   x:from.x,y:from.y,dx:0,dy:0,
-   life:.18,max:.18,size:bestD,color:C.green
-  });
 
   burst(e.x,e.y,C.green,7,130);
 
   if(e.hp<=0)killEnemy(best);
+
   from={x:e.x,y:e.y};
  }
 }
 
 function killEnemy(i){
  const e=enemies[i];
+
  score+=e.points;
 
- if(has("scavenger")&&Math.random()<.12&&orbList.length<6)spawnOrb();
- if(selectedWeapon==="pulse"&&Math.random()<.15*lvl("pulseResonance")&&orbList.length<6)spawnOrb();
+ if(
+  has("scavenger")&&
+  Math.random()<.12&&
+  orbsList.length<6
+ )spawnOrb();
 
- burst(e.x,e.y,C.red,e.type==="tank"?28:16,220);
+ if(
+  selectedWeapon==="pulse"&&
+  Math.random()<.15*lvl("pulseResonance")&&
+  orbsList.length<6
+ )spawnOrb();
+
+ burst(
+  e.x,e.y,
+  e.type==="tank"?C.orange:C.red,
+  e.type==="tank"?28:16,
+  220
+ );
+
  enemies.splice(i,1);
 }
+
+/* ---------- UPDATE ---------- */
 
 function updateBullets(dt){
  for(let i=bullets.length-1;i>=0;i--){
   const b=bullets[i];
 
-  // Trails are particles instead of permanent canvas paths.
-  if(b.type!=="laser"){
-   b.trail-=dt;
-   if(b.trail<=0){
-    b.trail=.025;
-    particles.push({
-     x:b.x,y:b.y,dx:0,dy:0,
-     life:.12,max:.12,size:b.type==="missile"?5:2.5,color:b.color
-    });
-   }
-  }
+  b.px=b.x;
+  b.py=b.y;
 
   b.x+=b.dx*b.speed*dt;
   b.y+=b.dy*b.speed*dt;
   b.life-=dt;
 
-  if(b.life<=0||b.x<-70||b.x>W+70||b.y<-70||b.y>H+70){
+  if(
+   b.life<=0||
+   b.x<-70||b.x>W+70||
+   b.y<-70||b.y>H+70
+  ){
    bullets.splice(i,1);
    continue;
   }
@@ -615,21 +992,42 @@ function updateBullets(dt){
 
   for(let j=enemies.length-1;j>=0&&!remove;j--){
    const e=enemies[j];
-   if(b.hit.has(e)||dist(b,e)>b.r+e.r)continue;
+
+   /*
+    All projectiles use swept collision now.
+    This is especially important for the laser.
+   */
+   const hit=segmentCircle(
+    b.px,b.py,b.x,b.y,
+    e.x,e.y,
+    e.hitR+b.r
+   );
+
+   if(b.hit.has(e)||!hit)continue;
 
    b.hit.add(e);
    e.hp-=b.damage;
    e.flash=.08;
 
-   burst(b.x,b.y,b.color,b.type==="rail"?7:4,120);
+   if(b.laser){
+    burst(b.x,b.y,C.red,3,100);
+   }else{
+    burst(b.x,b.y,C.white,4,120);
+   }
 
-   if(b.explosion)explode(b.x,b.y,b.explosion,b.damage*.75,b);
-   if(b.chain)chainAttack(e.x,e.y,b.damage*.65,b.chain,b.chainRange,b.hit);
+   if(b.explosion)
+    explode(b.x,b.y,b.explosion,b.damage*.75,b);
+
+   if(b.chain)
+    chainAttack(e.x,e.y,b.damage*.65,b.chain,b.chainRange,b.hit);
 
    if(e.hp<=0)killEnemy(j);
 
-   if(b.pierce>0)b.pierce--;
-   else if(!b.laser)remove=true;
+   if(b.pierce>0){
+    b.pierce--;
+   }else if(!b.laser){
+    remove=true;
+   }
   }
 
   if(remove)bullets.splice(i,1);
@@ -646,13 +1044,14 @@ function updateEnemies(dt){
   e.rot+=dt*(e.type==="fast"?4:2);
   e.flash=Math.max(0,e.flash-dt);
 
-  if(dist(player,e)<player.r+e.r){
+  if(dist(player,e)<player.r+e.hitR){
    enemies.splice(i,1);
 
    if(has("training")){
     player.x+=Math.cos(a)*55;
     player.y+=Math.sin(a)*55;
-    clampPlayer();
+    player.x=Math.max(player.r,Math.min(W-player.r,player.x));
+    player.y=Math.max(player.r,Math.min(H-player.r,player.y));
    }
 
    hitPlayer();
@@ -662,15 +1061,21 @@ function updateEnemies(dt){
 }
 
 function updateOrbs(dt){
+ /*
+  Orbs only move/spawn during active waves.
+  Existing orbs can still be collected during calm.
+ */
  const magnet=has("magnet")?85:0;
 
- for(let i=orbList.length-1;i>=0;i--){
-  const o=orbList[i];
+ for(let i=orbsList.length-1;i>=0;i--){
+  const o=orbsList[i];
+
   o.life-=dt;
   o.p+=dt*5;
 
   if(magnet){
    const dx=player.x-o.x,dy=player.y-o.y,d=Math.hypot(dx,dy);
+
    if(d>0&&d<magnet){
     const pull=180*(1-d/magnet);
     o.x+=dx/d*pull*dt;
@@ -682,17 +1087,21 @@ function updateOrbs(dt){
    player.pickups++;
    orbs+=has("collector")&&player.pickups%5===0?2:1;
    burst(o.x,o.y,C.yellow,20,210);
-   orbList.splice(i,1);
-  }else if(o.life<=0)orbList.splice(i,1);
+   orbsList.splice(i,1);
+  }else if(o.life<=0){
+   orbsList.splice(i,1);
+  }
  }
 }
 
 function updateParticles(dt){
  for(let i=particles.length-1;i>=0;i--){
   const p=particles[i];
+
   p.life-=dt;
   p.x+=p.dx*dt;
   p.y+=p.dy*dt;
+
   p.dx*=Math.pow(.05,dt);
   p.dy*=Math.pow(.05,dt);
 
@@ -700,17 +1109,25 @@ function updateParticles(dt){
  }
 }
 
-function clampPlayer(){
- player.x=Math.max(player.r,Math.min(W-player.r,player.x));
- player.y=Math.max(player.r,Math.min(H-player.r,player.y));
+function updateEffects(dt){
+ for(let i=effects.length-1;i>=0;i--){
+  effects[i].t+=dt;
+
+  if(effects[i].t>=effects[i].life)
+   effects.splice(i,1);
+ }
 }
 
 function update(dt){
- if(shopCooldown>0)shopCooldown=Math.max(0,shopCooldown-dt);
- if(shopDelay>0)shopDelay=Math.max(0,shopDelay-dt);
+ if(shopCooldown>0)
+  shopCooldown=Math.max(0,shopCooldown-dt);
+
+ if(shopDelay>0)
+  shopDelay=Math.max(0,shopDelay-dt);
 
  if(paused||gameOver||homeScreen){
   updateParticles(dt);
+  updateEffects(dt);
   return;
  }
 
@@ -718,29 +1135,37 @@ function update(dt){
  score=Math.max(score,Math.floor(timeAlive*10));
  shake=Math.max(0,shake-dt*12);
 
+ /*
+  Wave state is handled before combat.
+  During calm, updateWave() does not spawn enemies or orbs.
+ */
+ updateWave(dt);
+
  let mx=(keys.d?1:0)-(keys.a?1:0);
  let my=(keys.s?1:0)-(keys.w?1:0);
- const ml=Math.hypot(mx,my);
+ let ml=Math.hypot(mx,my);
 
  if(ml){
-  mx/=ml;my/=ml;
+  mx/=ml;
+  my/=ml;
   player.dashX=mx;
   player.dashY=my;
  }
 
  let ax=(keys.l||keys.arrowright?1:0)-(keys.j||keys.arrowleft?1:0);
  let ay=(keys.k||keys.arrowdown?1:0)-(keys.i||keys.arrowup?1:0);
- const al=Math.hypot(ax,ay);
+ let al=Math.hypot(ax,ay);
 
  if(al){
-  ax/=al;ay/=al;
+  ax/=al;
+  ay/=al;
   player.aimX=ax;
   player.aimY=ay;
   player.aim=Math.atan2(ay,ax);
  }
 
- player.fireCooldown-=dt;
- player.dashCooldown-=dt;
+ if(player.fireCooldown>0)player.fireCooldown-=dt;
+ if(player.dashCooldown>0)player.dashCooldown-=dt;
 
  if(keys[" "])shoot();
 
@@ -756,29 +1181,24 @@ function update(dt){
   player.y+=my*speed*dt;
  }
 
- clampPlayer();
+ player.x=Math.max(player.r,Math.min(W-player.r,player.x));
+ player.y=Math.max(player.r,Math.min(H-player.r,player.y));
 
- spawnTimer-=dt;
- let ei=enemyInterval();
- if(has("quickstart")&&timeAlive<5)ei*=1.25;
-
- if(spawnTimer<=0){
-  spawnEnemy();
-  spawnTimer=ei;
- }
-
- orbTimer-=dt;
-
- if(orbTimer<=0){
-  if(orbList.length<3)spawnOrb();
-  orbTimer=getOrbInterval();
+ /*
+  Orbs are generated only while a wave is active.
+ */
+ if(wave.active&&!wave.calm&&orbsList.length<3){
+  if(Math.random()<dt*.35)spawnOrb();
  }
 
  updateBullets(dt);
  updateEnemies(dt);
  updateOrbs(dt);
  updateParticles(dt);
+ updateEffects(dt);
 }
+
+/* ---------- GAME OVER ---------- */
 
 function endGame(){
  gameOver=true;
@@ -793,6 +1213,8 @@ function endGame(){
  updateMessage();
 }
 
+/* ---------- DRAW ---------- */
+
 function drawBackground(){
  ctx.fillStyle=C.bg;
  ctx.fillRect(-20,-20,W+40,H+40);
@@ -801,11 +1223,17 @@ function drawBackground(){
  ctx.lineWidth=1;
 
  for(let x=0;x<=W;x+=50){
-  ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x,0);
+  ctx.lineTo(x,H);
+  ctx.stroke();
  }
 
  for(let y=0;y<=H;y+=50){
-  ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0,y);
+  ctx.lineTo(W,y);
+  ctx.stroke();
  }
 }
 
@@ -821,6 +1249,7 @@ function drawPlayer(){
  ctx.fillStyle=c;
 
  ctx.fillRect(0,-5,32,10);
+
  ctx.fillStyle=C.white;
  ctx.fillRect(26,-5,8,10);
 
@@ -838,7 +1267,11 @@ function drawPlayer(){
   ctx.strokeStyle="rgba(0,255,255,.7)";
   ctx.lineWidth=2;
   ctx.beginPath();
-  ctx.arc(player.x,player.y,player.r+9+Math.sin(performance.now()/100)*2,0,Math.PI*2);
+  ctx.arc(
+   player.x,player.y,
+   player.r+9+Math.sin(performance.now()/100)*2,
+   0,Math.PI*2
+  );
   ctx.stroke();
  }
 
@@ -854,44 +1287,35 @@ function drawPlayer(){
 function drawBullets(){
  for(const b of bullets){
   ctx.save();
+
   ctx.translate(b.x,b.y);
   ctx.rotate(Math.atan2(b.dy,b.dx));
 
-  ctx.shadowBlur=18;
-  ctx.shadowColor=b.color;
-  ctx.fillStyle=b.color;
+  ctx.shadowBlur=b.laser?20:12;
+  ctx.shadowColor=weapon().color;
+  ctx.fillStyle=weapon().color;
 
-  if(b.type==="laser"){
-   ctx.globalAlpha=.85;
-   ctx.fillRect(-25,-3,50,6);
-   ctx.globalAlpha=.35;
-   ctx.fillRect(-45,-1,90,2);
-  }
-  else if(b.type==="rail"){
-   ctx.fillRect(-16,-3,32,6);
+  if(b.laser){
+   /*
+    Much more visible laser beam.
+   */
+   ctx.fillRect(-26,-3,52,6);
    ctx.fillStyle=C.white;
-   ctx.fillRect(-9,-2,18,4);
-  }
-  else if(b.type==="missile"){
-   ctx.fillStyle=b.color;
-   ctx.fillRect(-8,-4,16,8);
-   ctx.fillStyle=C.orange;
+   ctx.fillRect(-18,-1,36,2);
+  }else if(b.explosion){
+   /*
+    Missile body.
+   */
    ctx.beginPath();
-   ctx.moveTo(-8,0);
-   ctx.lineTo(-19,-5);
-   ctx.lineTo(-19,5);
+   ctx.moveTo(9,0);
+   ctx.lineTo(-7,-4);
+   ctx.lineTo(-7,4);
    ctx.closePath();
    ctx.fill();
-  }
-  else if(b.type==="arc"){
-   ctx.beginPath();
-   ctx.arc(0,0,b.r+2,0,Math.PI*2);
-   ctx.strokeStyle=b.color;
-   ctx.lineWidth=2;
-   ctx.stroke();
-   ctx.fill();
-  }
-  else{
+
+   ctx.fillStyle=C.white;
+   ctx.fillRect(-7,-2,5,4);
+  }else{
    ctx.beginPath();
    ctx.arc(0,0,b.r,0,Math.PI*2);
    ctx.fill();
@@ -908,29 +1332,32 @@ function drawEnemies(){
   ctx.rotate(e.rot);
 
   ctx.shadowBlur=18;
-  ctx.shadowColor=C.red;
-  ctx.fillStyle=e.flash>0?C.white:C.red;
+  ctx.shadowColor=e.type==="fast"?C.orange:C.red;
+  ctx.fillStyle=e.flash>0?C.white:(e.type==="fast"?C.orange:C.red);
 
   if(e.type==="tank"){
    ctx.fillRect(-e.r,-e.r,e.r*2,e.r*2);
+
    ctx.fillStyle=C.bg;
    ctx.fillRect(-7,-7,14,14);
-  }
-  else if(e.type==="fast"){
+  }else if(e.type==="fast"){
    ctx.beginPath();
    ctx.moveTo(e.r,0);
    ctx.lineTo(-e.r,-e.r*.65);
    ctx.lineTo(-e.r,e.r*.65);
    ctx.closePath();
    ctx.fill();
-  }
-  else{
+  }else{
    ctx.beginPath();
+
    for(let i=0;i<8;i++){
-    const a=i*Math.PI/4,r=i%2?e.r*.45:e.r;
+    const a=i*Math.PI/4;
+    const r=i%2?e.r*.45:e.r;
     const x=Math.cos(a)*r,y=Math.sin(a)*r;
+
     i?ctx.lineTo(x,y):ctx.moveTo(x,y);
    }
+
    ctx.closePath();
    ctx.fill();
   }
@@ -938,8 +1365,13 @@ function drawEnemies(){
   if(e.type==="tank"){
    ctx.fillStyle="rgba(255,255,255,.2)";
    ctx.fillRect(-e.r,e.r+7,e.r*2,3);
+
    ctx.fillStyle=C.white;
-   ctx.fillRect(-e.r,e.r+7,e.r*2*Math.max(0,e.hp/e.maxHp),3);
+   ctx.fillRect(
+    -e.r,e.r+7,
+    e.r*2*Math.max(0,e.hp/e.maxHp),
+    3
+   );
   }
 
   ctx.restore();
@@ -947,7 +1379,7 @@ function drawEnemies(){
 }
 
 function drawOrbs(){
- for(const o of orbList){
+ for(const o of orbsList){
   const s=1+Math.sin(o.p)*.25;
 
   ctx.save();
@@ -969,18 +1401,79 @@ function drawOrbs(){
 function drawParticles(){
  for(const p of particles){
   ctx.globalAlpha=Math.max(0,p.life/p.max);
+  ctx.fillStyle=p.color;
+  ctx.fillRect(p.x,p.y,p.size,p.size);
+ }
 
-  if(p.size>20&&p.dx===0){
-   ctx.strokeStyle=p.color;
-   ctx.lineWidth=2;
+ ctx.globalAlpha=1;
+}
+
+function drawEffects(){
+ for(const e of effects){
+  const t=e.t/e.life;
+
+  ctx.save();
+  ctx.globalAlpha=1-t;
+
+  if(e.type==="explosion"){
+   /*
+    Expanding ring + core flash.
+   */
+   const r=e.r*t;
+
+   ctx.strokeStyle=e.color;
+   ctx.lineWidth=5*(1-t)+1;
+   ctx.shadowBlur=25;
+   ctx.shadowColor=e.color;
+
    ctx.beginPath();
-   ctx.moveTo(p.x,p.y);
-   ctx.lineTo(p.x+p.size,p.y);
+   ctx.arc(e.x,e.y,r,0,Math.PI*2);
    ctx.stroke();
-  }else{
-   ctx.fillStyle=p.color;
-   ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+
+   ctx.fillStyle="rgba(255,255,255,.9)";
+   ctx.beginPath();
+   ctx.arc(e.x,e.y,Math.max(2,e.r*.16*(1-t)),0,Math.PI*2);
+   ctx.fill();
   }
+
+  if(e.type==="lightning"){
+   /*
+    Jagged electrical segment between its actual endpoints.
+   */
+   const dx=e.x2-e.x1;
+   const dy=e.y2-e.y1;
+   const len=Math.hypot(dx,dy)||1;
+   const nx=-dy/len,ny=dx/len;
+
+   ctx.strokeStyle=e.color;
+   ctx.lineWidth=5*(1-t)+1;
+   ctx.shadowBlur=20;
+   ctx.shadowColor=e.color;
+
+   ctx.beginPath();
+   ctx.moveTo(e.x1,e.y1);
+
+   const segments=6;
+
+   for(let i=1;i<segments;i++){
+    const p=i/segments;
+    const jitter=Math.sin(i*17+e.t*70)*8*(1-t);
+
+    ctx.lineTo(
+     e.x1+dx*p+nx*jitter,
+     e.y1+dy*p+ny*jitter
+    );
+   }
+
+   ctx.lineTo(e.x2,e.y2);
+   ctx.stroke();
+
+   ctx.strokeStyle=C.white;
+   ctx.lineWidth=1.5;
+   ctx.stroke();
+  }
+
+  ctx.restore();
  }
 
  ctx.globalAlpha=1;
@@ -991,9 +1484,9 @@ function drawUI(){
 
  ctx.shadowBlur=0;
  ctx.textAlign="left";
-
  ctx.fillStyle=C.white;
  ctx.font="bold 20px Arial";
+
  ctx.fillText("SCORE "+score,20,30);
 
  ctx.font="14px Arial";
@@ -1012,7 +1505,41 @@ function drawUI(){
  ctx.font="bold 15px Arial";
  ctx.fillText("ORBS "+orbs,20,96);
 
+ /* WAVE DISPLAY */
+
+ ctx.textAlign="center";
+
+ if(wave.calm){
+  ctx.fillStyle=C.cyan;
+  ctx.font="bold 18px Arial";
+  ctx.fillText(
+   "WAVE "+wave.number+" COMPLETE",
+   W/2,30
+  );
+
+  ctx.font="13px Arial";
+  ctx.fillStyle="rgba(255,255,255,.7)";
+  ctx.fillText(
+   "NEXT WAVE IN "+Math.max(0,wave.calmTime).toFixed(1)+"s",
+   W/2,50
+  );
+ }else{
+  ctx.fillStyle=C.cyan;
+  ctx.font="bold 18px Arial";
+  ctx.fillText("WAVE "+wave.number,W/2,30);
+
+  ctx.font="12px Arial";
+  ctx.fillStyle="rgba(255,255,255,.65)";
+  ctx.fillText(
+   wave.spawnLeft>0
+    ?"ENEMIES REMAINING TO SPAWN: "+wave.spawnLeft
+    :"CLEAR THE WAVE",
+   W/2,50
+  );
+ }
+
  ctx.textAlign="right";
+
  ctx.fillStyle=C.white;
  ctx.font="14px Arial";
  ctx.fillText("BEST "+highScore,W-20,30);
@@ -1031,23 +1558,32 @@ function drawUI(){
  ctx.textAlign="left";
  ctx.fillStyle="rgba(255,255,255,.7)";
  ctx.font="12px Arial";
- ctx.fillText("WASD MOVE   IJKL AIM   SPACE FIRE   SHIFT DASH   P SHOP",20,H-20);
+ ctx.fillText(
+  "WASD MOVE   IJKL AIM   SPACE FIRE   SHIFT DASH   P SHOP",
+  20,H-20
+ );
 
  ctx.textAlign="right";
  ctx.fillText(weapon().name,W-20,H-20);
  ctx.textAlign="left";
 }
 
+/* ---------- DRAW LOOP ---------- */
+
 function draw(){
  ctx.save();
 
  if(shake>0)
-  ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  ctx.translate(
+   (Math.random()-.5)*shake,
+   (Math.random()-.5)*shake
+  );
 
  drawBackground();
  drawOrbs();
  drawEnemies();
  drawBullets();
+ drawEffects();
  drawParticles();
  drawPlayer();
  drawUI();
@@ -1055,76 +1591,30 @@ function draw(){
  ctx.restore();
 }
 
-function updateMessage(){
- if(abilityScreen){updateAbilityMessage();return}
- if(weaponScreen){updateWeaponMessage();return}
-
- if(homeScreen){
-  message.innerHTML=`
-   <h1 style="color:${C.cyan}">NEON ESCAPE</h1>
-   <p>Survive, destroy enemies, collect yellow orbs and spend them in the Armory.</p>
-   <div class="home-buttons">
-    <button class="main-button" onclick="start()">PLAY ROUND</button>
-    <button class="main-button secondary-button" onclick="showAbilities()">PERMANENT ABILITIES</button>
-    <button class="main-button secondary-button" onclick="showWeapons()">WEAPONS</button>
-   </div>
-   <p style="font-size:12px;color:#777">ENTER / SPACE — Play · B — Abilities · V — Weapons</p>`;
-
-  message.classList.add("show");
-  return;
- }
-
- if(gameOver){
-  message.innerHTML=`
-   <h1 style="color:${C.red}">GAME OVER</h1>
-   <p>Score: <strong>${score}</strong></p>
-   <p>Best: <strong>${highScore}</strong></p>
-   <p>Orbs collected: <strong>${orbs}</strong></p>
-   <button class="main-button" onclick="start()">PLAY AGAIN</button>
-   <button class="main-button secondary-button" onclick="home()">HOME</button>
-   <p style="font-size:12px;color:#777">R — Play Again · H — Home</p>`;
-
-  message.classList.add("show");
-  return;
- }
-
- if(paused){
-  updateShopMessage();
-  return;
- }
-
- message.classList.remove("show");
-}
-
-function resize(){
- dpr=Math.min(devicePixelRatio||1,2);
- W=innerWidth;
- H=innerHeight;
-
- canvas.width=W*dpr;
- canvas.height=H*dpr;
- canvas.style.width=W+"px";
- canvas.style.height=H+"px";
-
- ctx.setTransform(dpr,0,0,dpr,0,0);
-
- if(typeof player!=="undefined")clampPlayer();
-}
-
-addEventListener("resize",resize);
+/* ---------- RAF ---------- */
 
 function frame(now){
- const dt=last?Math.min((now-last)/1000,.05):0;
+ const dt=last===0?0:Math.min((now-last)/1000,.05);
  last=now;
 
  update(dt);
  draw();
+
  requestAnimationFrame(frame);
 }
 
+/* ---------- GLOBAL BUTTONS ---------- */
+
+Object.assign(window,{
+ startRound,restart,goHome,showHome,
+ showAbilities,showWeapons,
+ toggleAbility,selectWeapon,buyUpgrade
+});
+
+/* ---------- INIT ---------- */
+
 resize();
 resetPlayer();
-resetWeaponLevels();
 applyUpgrades();
 updateMessage();
 requestAnimationFrame(frame);
