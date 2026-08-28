@@ -1,2 +1,2 @@
 # Boris
-A platformer
+A game
