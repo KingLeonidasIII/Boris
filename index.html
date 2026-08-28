@@ -9,29 +9,29 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05050a;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 canvas{display:block;width:100%;height:100%}
 #overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-#message{display:none;width:min(760px,94vw);max-height:92vh;overflow-y:auto;padding:22px;text-align:center;background:rgba(0,0,0,.95);border:1px solid rgba(0,255,255,.4);border-radius:14px;box-shadow:0 0 50px rgba(0,255,255,.15);pointer-events:auto}
+#message{display:none;width:min(780px,94vw);max-height:92vh;overflow-y:auto;padding:20px;text-align:center;background:rgba(0,0,0,.96);border:1px solid rgba(0,255,255,.4);border-radius:14px;box-shadow:0 0 50px rgba(0,255,255,.15);pointer-events:auto}
 #message.show{display:block}
-#message h1{margin:0 0 8px;font-size:36px}
+#message h1{margin:0 0 8px;font-size:34px}
+#message h2{margin:14px 0 7px;font-size:15px}
 #message p{color:#aaa;line-height:1.4}
-.main-button{display:block;width:min(360px,80vw);margin:14px auto 0;padding:13px;border:1px solid #00ffff;border-radius:8px;background:#00ffff;color:#001010;font-size:17px;font-weight:bold;cursor:pointer}
+.main-button{display:block;width:min(360px,80vw);margin:12px auto 0;padding:12px;border:1px solid #00ffff;border-radius:8px;background:#00ffff;color:#001010;font-size:16px;font-weight:bold;cursor:pointer}
 .secondary-button{background:transparent;color:#00ffff}
 .main-button:hover{filter:brightness(1.15)}
-.home-buttons{display:flex;flex-direction:column;align-items:center}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}
-.card{position:relative;min-height:125px;padding:13px;text-align:left;border:1px solid rgba(255,255,255,.15);border-radius:9px;background:rgba(255,255,255,.035);cursor:pointer}
+.home-buttons{display:flex;flex-direction:column;align-items:center}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.card{position:relative;min-height:112px;padding:12px;text-align:left;border:1px solid rgba(255,255,255,.15);border-radius:9px;background:rgba(255,255,255,.035);cursor:pointer}
 .card.selected{border-color:#ffe600;background:rgba(255,230,0,.08)}
-.card h3{margin:0 24px 6px;font-size:16px}
-.card p{margin:5px 0;color:#aaa;font-size:12px;line-height:1.4}
+.card.locked{opacity:.35;cursor:not-allowed}
+.card h3{margin:0 24px 5px;font-size:15px}
+.card p{margin:4px 0;color:#aaa;font-size:12px;line-height:1.35}
 .key{position:absolute;top:8px;right:9px;color:#777;font-weight:bold;font-size:12px}
-.label{display:inline-block;margin-top:7px;padding:4px 6px;border-radius:4px;background:#ffe600;color:#151500;font-size:10px;font-weight:bold}
-.shop p{min-height:42px}
+.label{display:inline-block;margin-top:6px;padding:4px 6px;border-radius:4px;background:#ffe600;color:#151500;font-size:10px;font-weight:bold}
 .shop button{width:100%;padding:8px;border:0;border-radius:6px;background:#00ffff;color:#001010;font-weight:bold;cursor:pointer}
 .shop button:disabled{opacity:.3;cursor:not-allowed}
-@media(max-width:600px){
- #message{padding:15px}
- .grid{grid-template-columns:1fr}
- .card{min-height:112px}
-}
+.choice{border-color:rgba(0,255,255,.35)}
+.choice:hover{border-color:#00ffff}
+.small{font-size:11px!important;color:#777!important}
+.warn{color:#ff9d00!important}
+@media(max-width:600px){#message{padding:14px}.grid{grid-template-columns:1fr}.card{min-height:100px}}
 </style>
 </head>
 <body>
