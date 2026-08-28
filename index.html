@@ -3,7 +3,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover"
+>
 
 <title>Neon Escape</title>
 
@@ -30,27 +34,44 @@ body {
 
 canvas {
     display: block;
+
     width: 100%;
     height: 100%;
 }
 
+
+/* ==================================================
+   OVERLAY
+================================================== */
+
 #overlay {
     position: fixed;
+
     inset: 0;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
     pointer-events: none;
 }
 
+
 #message {
     display: none;
 
+    width: min(760px, 94vw);
+    max-height: 92vh;
+
+    overflow-y: auto;
+
+    padding: 24px;
+
     text-align: center;
 
-    background: rgba(0, 0, 0, 0.92);
+    background:
+        rgba(0, 0, 0, 0.94);
 
     border:
         1px solid
@@ -58,28 +79,18 @@ canvas {
 
     border-radius: 14px;
 
-    padding: 24px;
-
-    min-width:
-        min(620px, 92vw);
-
-    max-height:
-        90vh;
-
-    overflow-y:
-        auto;
-
     box-shadow:
         0 0 50px
         rgba(0, 255, 255, 0.15);
 
-    pointer-events:
-        auto;
+    pointer-events: auto;
 }
+
 
 #message.show {
     display: block;
 }
+
 
 #message h1 {
     margin:
@@ -89,20 +100,23 @@ canvas {
         38px;
 }
 
+
 #message p {
     color:
         #bbb;
+
+    line-height:
+        1.45;
 }
 
 
-/* =========================================
-   GENERAL BUTTONS
-========================================= */
+/* ==================================================
+   BUTTONS
+================================================== */
 
 .main-button {
 
-    display:
-        block;
+    display: block;
 
     width:
         min(360px, 80vw);
@@ -135,10 +149,12 @@ canvas {
         pointer;
 }
 
+
 .main-button:hover {
     filter:
         brightness(1.15);
 }
+
 
 .secondary-button {
 
@@ -150,9 +166,26 @@ canvas {
 }
 
 
-/* =========================================
+/* ==================================================
+   HOME SCREEN
+================================================== */
+
+.home-buttons {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+}
+
+
+/* ==================================================
    SHOP
-========================================= */
+================================================== */
 
 .shop-grid {
 
@@ -168,6 +201,7 @@ canvas {
     margin-top:
         16px;
 }
+
 
 .shop-item {
 
@@ -188,11 +222,13 @@ canvas {
         left;
 }
 
+
 .shop-item h3 {
 
     margin:
         0 0 5px;
 }
+
 
 .shop-item p {
 
@@ -205,6 +241,7 @@ canvas {
     min-height:
         52px;
 }
+
 
 .shop-item button {
 
@@ -233,6 +270,7 @@ canvas {
         pointer;
 }
 
+
 .shop-item button:disabled {
 
     opacity:
@@ -243,9 +281,212 @@ canvas {
 }
 
 
-/* =========================================
-   MOBILE / SMALL SCREENS
-========================================= */
+/* ==================================================
+   ABILITIES
+================================================== */
+
+.ability-header {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        12px;
+
+    margin-bottom:
+        14px;
+}
+
+
+.ability-count {
+
+    color:
+        #ffe600;
+
+    font-weight:
+        bold;
+
+    font-size:
+        18px;
+}
+
+
+.ability-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap:
+        10px;
+
+    margin-top:
+        14px;
+}
+
+
+.ability-card {
+
+    position:
+        relative;
+
+    min-height:
+        145px;
+
+    padding:
+        14px;
+
+    text-align:
+        left;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.15);
+
+    border-radius:
+        10px;
+
+    background:
+        rgba(255,255,255,0.035);
+
+    cursor:
+        pointer;
+
+    transition:
+        transform 0.12s,
+        border-color 0.12s,
+        background 0.12s;
+}
+
+
+.ability-card:hover {
+
+    transform:
+        translateY(-2px);
+
+    border-color:
+        rgba(0,255,255,0.55);
+}
+
+
+.ability-card.selected {
+
+    border-color:
+        #ffe600;
+
+    background:
+        rgba(255,230,0,0.09);
+
+    box-shadow:
+        inset 0 0 20px
+        rgba(255,230,0,0.04);
+}
+
+
+.ability-card.disabled {
+
+    opacity:
+        0.42;
+}
+
+
+.ability-number {
+
+    position:
+        absolute;
+
+    top:
+        9px;
+
+    right:
+        10px;
+
+    color:
+        #777;
+
+    font-size:
+        12px;
+
+    font-weight:
+        bold;
+}
+
+
+.ability-card h3 {
+
+    margin:
+        0 25px 7px 0;
+
+    color:
+        #00ffff;
+
+    font-size:
+        17px;
+}
+
+
+.ability-card.selected h3 {
+
+    color:
+        #ffe600;
+}
+
+
+.ability-card p {
+
+    margin:
+        0;
+
+    color:
+        #aaa;
+
+    font-size:
+        13px;
+
+    line-height:
+        1.4;
+}
+
+
+.equipped-label {
+
+    display:
+        inline-block;
+
+    margin-top:
+        10px;
+
+    padding:
+        4px 7px;
+
+    border-radius:
+        5px;
+
+    background:
+        #ffe600;
+
+    color:
+        #151500;
+
+    font-size:
+        11px;
+
+    font-weight:
+        bold;
+}
+
+
+/* ==================================================
+   SMALL SCREENS
+================================================== */
 
 @media (max-width: 600px) {
 
@@ -254,7 +495,8 @@ canvas {
             16px;
     }
 
-    .shop-grid {
+    .shop-grid,
+    .ability-grid {
         grid-template-columns:
             1fr;
     }
@@ -262,6 +504,11 @@ canvas {
     .shop-item p {
         min-height:
             auto;
+    }
+
+    .ability-card {
+        min-height:
+            125px;
     }
 }
 
@@ -272,6 +519,7 @@ canvas {
 <body>
 
 <canvas id="game"></canvas>
+
 
 <div id="overlay">
 
@@ -364,13 +612,13 @@ function resize() {
 
 
     /*
-        Don't overwrite a valid
-        player position on resize.
+        Only reposition the player
+        if its current coordinates
+        are invalid.
     */
 
     if (
-        !Number.isFinite(player.x) ||
-        player.x === 0
+        !Number.isFinite(player.x)
     ) {
 
         player.x =
@@ -379,13 +627,39 @@ function resize() {
 
 
     if (
-        !Number.isFinite(player.y) ||
-        player.y === 0
+        !Number.isFinite(player.y)
     ) {
 
         player.y =
             height / 2;
     }
+
+
+    /*
+        Keep the player inside the
+        arena after resizing.
+    */
+
+    player.x =
+        Math.max(
+            player.radius,
+            Math.min(
+                width -
+                player.radius,
+                player.x
+            )
+        );
+
+
+    player.y =
+        Math.max(
+            player.radius,
+            Math.min(
+                height -
+                player.radius,
+                player.y
+            )
+        );
 }
 
 
@@ -396,7 +670,7 @@ window.addEventListener(
 
 
 /* ==================================================
-   INPUT
+   KEYBOARD
 ================================================== */
 
 const keys =
@@ -412,12 +686,6 @@ function keyDown(event) {
     keys[key] =
         true;
 
-
-    /*
-        Prevent the browser from
-        interpreting game keys as
-        page commands.
-    */
 
     const gameKeys = [
 
@@ -443,14 +711,24 @@ function keyDown(event) {
         "r",
         "h",
 
+        "b",
+
+        "escape",
+
+        "enter",
+
         "1",
         "2",
         "3",
         "4",
         "5",
         "6",
+        "7",
+        "8",
+        "9",
 
-        "enter"
+        "q",
+        "e"
     ];
 
 
@@ -463,9 +741,9 @@ function keyDown(event) {
 
 
     /*
-        Ignore keyboard auto-repeat
-        for actions that should only
-        happen once per press.
+        Browser key-repeat should not
+        repeatedly toggle menus or
+        abilities.
     */
 
     if (
@@ -476,9 +754,9 @@ function keyDown(event) {
     }
 
 
-    /* ------------------------------------------
-       HOME SCREEN
-    ------------------------------------------ */
+    /* ==============================================
+       HOME
+    ============================================== */
 
     if (
         homeScreen
@@ -490,6 +768,46 @@ function keyDown(event) {
         ) {
 
             startRound();
+
+            return;
+        }
+
+
+        if (
+            key === "b"
+        ) {
+
+            showAbilities();
+
+            return;
+        }
+
+
+        if (
+            key === "escape" &&
+            abilityScreen
+        ) {
+
+            showHome();
+
+            return;
+        }
+
+
+        /*
+            Ability shortcuts from
+            the ability screen.
+        */
+
+        if (
+            abilityScreen
+        ) {
+
+            handleAbilityKey(
+                key
+            );
+
+            return;
         }
 
 
@@ -497,9 +815,9 @@ function keyDown(event) {
     }
 
 
-    /* ------------------------------------------
+    /* ==============================================
        SHOP
-    ------------------------------------------ */
+    ============================================== */
 
     if (
         key === "p" &&
@@ -512,9 +830,9 @@ function keyDown(event) {
     }
 
 
-    /* ------------------------------------------
+    /* ==============================================
        GAME OVER
-    ------------------------------------------ */
+    ============================================== */
 
     if (
         gameOver
@@ -540,9 +858,9 @@ function keyDown(event) {
     }
 
 
-    /* ------------------------------------------
+    /* ==============================================
        GAMEPLAY
-    ------------------------------------------ */
+    ============================================== */
 
     if (
         key === " "
@@ -558,35 +876,39 @@ function keyDown(event) {
 
         dash();
     }
+}
 
 
-    /* ------------------------------------------
-       SHOP NUMBER SHORTCUTS
-    ------------------------------------------ */
+function handleAbilityKey(key) {
+
+    const mapping = {
+
+        "1": 0,
+        "2": 1,
+        "3": 2,
+        "4": 3,
+        "5": 4,
+        "6": 5,
+        "7": 6,
+        "8": 7,
+        "9": 8,
+
+        "q": 9,
+        "w": 10,
+        "e": 11,
+        "r": 12
+    };
+
 
     if (
-        paused &&
-        ["1","2","3","4","5","6"].includes(key)
+        Object.prototype.hasOwnProperty.call(
+            mapping,
+            key
+        )
     ) {
 
-        const upgradeByKey = {
-
-            "1": "rapid",
-
-            "2": "heavy",
-
-            "3": "thrusters",
-
-            "4": "overdrive",
-
-            "5": "repair",
-
-            "6": "scatter"
-        };
-
-
-        buyUpgrade(
-            upgradeByKey[key]
+        toggleAbility(
+            mapping[key]
         );
     }
 }
@@ -610,8 +932,8 @@ window.addEventListener(
 
 
 /*
-    Prevent keys getting stuck
-    if the browser loses focus.
+    Prevent stuck keys when the
+    browser loses focus.
 */
 
 window.addEventListener(
@@ -628,57 +950,48 @@ window.addEventListener(
 );
 
 
-/*
-    Hide the page's default
-    behavior while the game is
-    being played.
-*/
-
-document.addEventListener(
-    "visibilitychange",
-    function() {
-
-        if (
-            document.hidden &&
-            !gameOver &&
-            !homeScreen
-        ) {
-
-            paused = true;
-
-            updateMessage();
-        }
-    }
-);
-
-
 /* ==================================================
    GAME STATE
 ================================================== */
 
-let paused = false;
+let paused =
+    false;
 
-let gameOver = false;
+let gameOver =
+    false;
 
-let homeScreen = true;
+let homeScreen =
+    true;
 
-let score = 0;
+let abilityScreen =
+    false;
 
-let orbs = 0;
+let score =
+    0;
 
-let timeAlive = 0;
+let orbs =
+    0;
 
-let spawnTimer = 0;
+let timeAlive =
+    0;
 
-let orbTimer = 1.5;
+let spawnTimer =
+    0;
 
-let shopCooldown = 0;
+let orbTimer =
+    0;
 
-let shopReadyDelay = 1.5;
+let shopCooldown =
+    0;
 
-let screenShake = 0;
+let shopReadyDelay =
+    1.5;
 
-let lastTime = 0;
+let screenShake =
+    0;
+
+let lastTime =
+    0;
 
 
 const SHOP_COOLDOWN_TIME =
@@ -731,7 +1044,8 @@ const COLORS = {
    HIGH SCORE
 ================================================== */
 
-let highScore = 0;
+let highScore =
+    0;
 
 
 try {
@@ -747,7 +1061,480 @@ try {
 
 catch (error) {
 
-    highScore = 0;
+    highScore =
+        0;
+}
+
+
+/* ==================================================
+   PERMANENT ABILITIES
+================================================== */
+
+/*
+    These are the 13 permanent abilities.
+
+    They are not shop upgrades.
+
+    Their selected state is saved
+    separately in localStorage.
+
+    The effects are deliberately
+    relatively small because the player
+    can equip two simultaneously.
+*/
+
+const ABILITIES = [
+
+    {
+        id:
+            "reinforcedHull",
+
+        name:
+            "REINFORCED HULL",
+
+        description:
+            "Start each run with +1 maximum health.",
+
+        color:
+            "#ff5555"
+    },
+
+
+    {
+        id:
+            "emergencyShield",
+
+        name:
+            "EMERGENCY SHIELD",
+
+        description:
+            "The first enemy collision of each run is absorbed without losing health.",
+
+        color:
+            "#66ccff"
+    },
+
+
+    {
+        id:
+            "magneticCore",
+
+        name:
+            "MAGNETIC CORE",
+
+        description:
+            "Yellow orbs are attracted from 85 pixels away instead of only on contact.",
+
+        color:
+            "#ffe600"
+    },
+
+
+    {
+        id:
+            "scavenger",
+
+        name:
+            "SCAVENGER",
+
+        description:
+            "Enemy kills have a 12% chance to create an extra yellow orb.",
+
+        color:
+            "#ffe600"
+    },
+
+
+    {
+        id:
+            "quickStart",
+
+        name:
+            "QUICK START",
+
+        description:
+            "Begin every run with the first 5 seconds of enemy spawning slowed by 25%.",
+
+        color:
+            "#00ffff"
+    },
+
+
+    {
+        id:
+            "overchargedCore",
+
+        name:
+            "OVERCHARGED CORE",
+
+        description:
+            "Your normal cannon and scatter pellets deal 15% more damage.",
+
+        color:
+            "#ff9933"
+    },
+
+
+    {
+        id:
+            "stabilizers",
+
+        name:
+            "STABILIZERS",
+
+        description:
+            "Your movement speed is permanently increased by 10%.",
+
+        color:
+            "#00ff88"
+    },
+
+
+    {
+        id:
+            "afterburner",
+
+        name:
+            "AFTERBURNER",
+
+        description:
+            "Dash cooldown is permanently reduced by 12%.",
+
+        color:
+            "#a66cff"
+    },
+
+
+    {
+        id:
+            "quickHands",
+
+        name:
+            "QUICK HANDS",
+
+        description:
+            "The cannon's base firing delay is permanently reduced by 10%.",
+
+        color:
+            "#00ffff"
+    },
+
+
+    {
+        id:
+            "thickBarrel",
+
+        name:
+            "THICK BARREL",
+
+        description:
+            "Bullets travel 12% faster and remain active slightly longer.",
+
+        color:
+            "#ff7b00"
+    },
+
+
+    {
+        id:
+            "collector",
+
+        name:
+            "COLLECTOR",
+
+        description:
+            "Collected yellow orbs are worth 2 orbs every fifth pickup.",
+
+        color:
+            "#ffe600"
+    },
+
+
+    {
+        id:
+            "lastStand",
+
+        name:
+            "LAST STAND",
+
+        description:
+            "At 1 HP, movement speed increases by 20%.",
+
+        color:
+            "#ff1744"
+    },
+
+
+    {
+        id:
+            "combatTraining",
+
+        name:
+            "COMBAT TRAINING",
+
+        description:
+            "Enemy contact damage has a small knockback effect, giving you more room to recover.",
+
+        color:
+            "#ffffff"
+    }
+];
+
+
+/*
+    Exactly two slots.
+
+    null means an empty slot.
+
+    This array is loaded from storage
+    before the Home Screen is displayed.
+*/
+
+let selectedAbilities = [
+    null,
+    null
+];
+
+
+/* ==================================================
+   ABILITY STORAGE
+================================================== */
+
+const ABILITY_STORAGE_KEY =
+    "neonEscapePermanentAbilities";
+
+
+function loadAbilities() {
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                ABILITY_STORAGE_KEY
+            );
+
+
+        if (
+            !saved
+        ) {
+
+            return;
+        }
+
+
+        const parsed =
+            JSON.parse(
+                saved
+            );
+
+
+        /*
+            Only accept a valid array
+            with exactly two slots.
+        */
+
+        if (
+            !Array.isArray(parsed) ||
+            parsed.length !== 2
+        ) {
+
+            return;
+        }
+
+
+        const validIds =
+            new Set(
+                ABILITIES.map(
+                    ability =>
+                        ability.id
+                )
+            );
+
+
+        const cleaned =
+            parsed.map(
+                id =>
+                    validIds.has(id)
+                        ? id
+                        : null
+            );
+
+
+        /*
+            Prevent the same ability
+            from occupying both slots
+            if a corrupted storage value
+            somehow contains duplicates.
+        */
+
+        if (
+            cleaned[0] !== null &&
+            cleaned[0] === cleaned[1]
+        ) {
+
+            cleaned[1] =
+                null;
+        }
+
+
+        selectedAbilities =
+            cleaned;
+
+    }
+
+    catch (error) {
+
+        /*
+            Invalid or unavailable storage
+            must never prevent the game from
+            starting.
+        */
+
+        selectedAbilities = [
+            null,
+            null
+        ];
+    }
+}
+
+
+function saveAbilities() {
+
+    try {
+
+        localStorage.setItem(
+            ABILITY_STORAGE_KEY,
+            JSON.stringify(
+                selectedAbilities
+            )
+        );
+
+    }
+
+    catch (error) {
+
+        /*
+            If storage is blocked, the
+            abilities still work during
+            the current page session.
+        */
+    }
+}
+
+
+loadAbilities();
+
+
+/* ==================================================
+   ABILITY HELPERS
+================================================== */
+
+function hasAbility(id) {
+
+    return (
+        selectedAbilities[0] === id ||
+        selectedAbilities[1] === id
+    );
+}
+
+
+function abilityIndex(id) {
+
+    return selectedAbilities.indexOf(
+        id
+    );
+}
+
+
+/* ==================================================
+   TOGGLE ABILITY
+================================================== */
+
+function toggleAbility(index) {
+
+    if (
+        !abilityScreen
+    ) {
+
+        return;
+    }
+
+
+    if (
+        index < 0 ||
+        index >= ABILITIES.length
+    ) {
+
+        return;
+    }
+
+
+    const id =
+        ABILITIES[index].id;
+
+
+    const existingSlot =
+        abilityIndex(id);
+
+
+    /*
+        If already equipped,
+        remove it.
+    */
+
+    if (
+        existingSlot !== -1
+    ) {
+
+        selectedAbilities[
+            existingSlot
+        ] =
+            null;
+
+
+        saveAbilities();
+
+        updateAbilityMessage();
+
+        return;
+    }
+
+
+    /*
+        Find an empty slot.
+    */
+
+    const emptySlot =
+        selectedAbilities.indexOf(
+            null
+        );
+
+
+    if (
+        emptySlot !== -1
+    ) {
+
+        selectedAbilities[
+            emptySlot
+        ] =
+            id;
+
+
+        saveAbilities();
+
+        updateAbilityMessage();
+
+        return;
+    }
+
+
+    /*
+        Both slots are occupied.
+
+        Do not silently replace an
+        existing ability. This prevents
+        accidental loadout changes.
+    */
 }
 
 
@@ -757,45 +1544,65 @@ catch (error) {
 
 const player = {
 
-    x: 0,
+    x:
+        0,
 
-    y: 0,
+    y:
+        0,
 
-    radius: 14,
+    radius:
+        14,
 
-    moveSpeed: 300,
+    moveSpeed:
+        300,
 
-    aimAngle: 0,
+    aimAngle:
+        0,
 
-    aimX: 1,
+    aimX:
+        1,
 
-    aimY: 0,
+    aimY:
+        0,
 
-    fireCooldown: 0,
+    fireCooldown:
+        0,
 
-    fireRate: 0.16,
+    fireRate:
+        0.16,
 
-    bulletSpeed: 850,
+    bulletSpeed:
+        850,
 
-    bulletDamage: 1,
+    bulletDamage:
+        1,
 
-    dashCooldown: 0,
+    dashCooldown:
+        0,
 
-    dashMaxCooldown: 1.1,
+    dashMaxCooldown:
+        1.1,
 
-    dashTime: 0,
+    dashTime:
+        0,
 
-    dashDuration: 0.12,
+    dashDuration:
+        0.12,
 
-    dashSpeed: 1000,
+    dashSpeed:
+        1000,
 
-    dashX: 1,
+    maxHealth:
+        3,
 
-    dashY: 0,
+    health:
+        3,
 
-    maxHealth: 3,
+    emergencyShieldUsed:
+        false,
 
-    health: 3
+    pickupCount:
+        0
 };
 
 
@@ -807,59 +1614,66 @@ const upgrades = {
 
     rapid: {
 
-        level: 0,
+        level:
+            0,
 
-        maxLevel: 3,
+        maxLevel:
+            3,
 
-        cost: 3
+        cost:
+            3
     },
 
 
     heavy: {
 
-        level: 0,
+        level:
+            0,
 
-        maxLevel: 2,
+        maxLevel:
+            2,
 
-        cost: 5
+        cost:
+            5
     },
 
 
     thrusters: {
 
-        level: 0,
+        level:
+            0,
 
-        maxLevel: 3,
+        maxLevel:
+            3,
 
-        cost: 4
+        cost:
+            4
     },
 
 
     overdrive: {
 
-        level: 0,
+        level:
+            0,
 
-        maxLevel: 2,
+        maxLevel:
+            2,
 
-        cost: 6
+        cost:
+            6
     },
 
 
-    /*
-        Scatter Cannon.
-
-        One level only because it changes
-        the weapon itself rather than being
-        a conventional stat increase.
-    */
-
     scatter: {
 
-        level: 0,
+        level:
+            0,
 
-        maxLevel: 1,
+        maxLevel:
+            1,
 
-        cost: 12
+        cost:
+            12
     }
 };
 
@@ -894,38 +1708,92 @@ function distance(a, b) {
 function applyUpgrades() {
 
     /*
-        Rapid Fire:
-        20% shorter delay per level.
+        Base fire rate.
     */
 
-    player.fireRate =
-        0.16 *
+    let fireRate =
+        0.16;
+
+
+    /*
+        Quick Hands permanent ability.
+    */
+
+    if (
+        hasAbility(
+            "quickHands"
+        )
+    ) {
+
+        fireRate *=
+            0.90;
+    }
+
+
+    /*
+        Rapid Fire shop upgrade.
+    */
+
+    fireRate *=
         Math.pow(
             0.8,
             upgrades.rapid.level
         );
 
 
-    /*
-        Heavy Cannon:
-        increases the base damage.
+    player.fireRate =
+        fireRate;
 
-        Scatter Cannon uses half of this
-        value for each pellet, keeping
-        the pellets individually weak.
+
+    /*
+        Base bullet damage.
     */
 
-    player.bulletDamage =
+    let damage =
         1 +
         upgrades.heavy.level;
 
 
     /*
-        Thrusters.
+        Overcharged Core.
     */
 
+    if (
+        hasAbility(
+            "overchargedCore"
+        )
+    ) {
+
+        damage *=
+            1.15;
+    }
+
+
+    player.bulletDamage =
+        damage;
+
+
+    /*
+        Movement.
+    */
+
+    let movement =
+        300;
+
+
+    if (
+        hasAbility(
+            "stabilizers"
+        )
+    ) {
+
+        movement *=
+            1.10;
+    }
+
+
     player.moveSpeed =
-        300 *
+        movement *
         (
             1 +
             upgrades.thrusters.level *
@@ -934,14 +1802,47 @@ function applyUpgrades() {
 
 
     /*
-        Overdrive.
+        Dash.
     */
 
-    player.dashMaxCooldown =
-        1.1 *
+    let dashCooldown =
+        1.1;
+
+
+    if (
+        hasAbility(
+            "afterburner"
+        )
+    ) {
+
+        dashCooldown *=
+            0.88;
+    }
+
+
+    dashCooldown *=
         Math.pow(
             0.8,
             upgrades.overdrive.level
+        );
+
+
+    player.dashMaxCooldown =
+        dashCooldown;
+
+
+    /*
+        Bullet speed.
+    */
+
+    player.bulletSpeed =
+        850 *
+        (
+            hasAbility(
+                "thickBarrel"
+            )
+                ? 1.12
+                : 1
         );
 }
 
@@ -957,7 +1858,8 @@ function resetUpgrades() {
         Object.values(upgrades)
     ) {
 
-        upgrade.level = 0;
+        upgrade.level =
+            0;
     }
 
 
@@ -971,13 +1873,17 @@ function resetUpgrades() {
 
 function clearRoundObjects() {
 
-    bullets.length = 0;
+    bullets.length =
+        0;
 
-    enemies.length = 0;
+    enemies.length =
+        0;
 
-    orbsOnMap.length = 0;
+    orbsOnMap.length =
+        0;
 
-    particles.length = 0;
+    particles.length =
+        0;
 }
 
 
@@ -987,16 +1893,30 @@ function clearRoundObjects() {
 
 function resetPlayer() {
 
+    /*
+        Reinforced Hull is permanent
+        for every run, but health is
+        still reset when a new run begins.
+    */
+
+    player.maxHealth =
+        hasAbility(
+            "reinforcedHull"
+        )
+            ? 4
+            : 3;
+
+
+    player.health =
+        player.maxHealth;
+
+
     player.x =
         width / 2;
 
 
     player.y =
         height / 2;
-
-
-    player.health =
-        player.maxHealth;
 
 
     player.fireCooldown =
@@ -1029,6 +1949,14 @@ function resetPlayer() {
 
     player.dashY =
         0;
+
+
+    player.emergencyShieldUsed =
+        false;
+
+
+    player.pickupCount =
+        0;
 }
 
 
@@ -1041,54 +1969,45 @@ function startRound() {
     homeScreen =
         false;
 
+    abilityScreen =
+        false;
 
     paused =
         false;
 
-
     gameOver =
         false;
-
 
     score =
         0;
 
-
     orbs =
         0;
-
 
     timeAlive =
         0;
 
+    /*
+        Enemy and orb timers are both
+        initialized through the same
+        difficulty system below.
+    */
 
     spawnTimer =
         0.25;
 
-
     orbTimer =
-        1.5;
+        getOrbSpawnInterval();
 
 
     shopCooldown =
         0;
 
-
     shopReadyDelay =
         1.5;
 
-
     screenShake =
         0;
-
-
-    /*
-        Reset the animation timer.
-
-        This prevents a large delta time
-        if the player spent a long time
-        on the home screen.
-    */
 
     lastTime =
         0;
@@ -1123,23 +2042,308 @@ function goHome() {
     homeScreen =
         true;
 
+    abilityScreen =
+        false;
 
     paused =
         false;
 
-
     gameOver =
         false;
 
-
     lastTime =
         0;
-
 
     clearRoundObjects();
 
     updateMessage();
 }
+
+
+function showHome() {
+
+    homeScreen =
+        true;
+
+    abilityScreen =
+        false;
+
+    paused =
+        false;
+
+    gameOver =
+        false;
+
+    lastTime =
+        0;
+
+    updateMessage();
+}
+
+
+/* ==================================================
+   ABILITY SCREEN
+================================================== */
+
+function showAbilities() {
+
+    /*
+        Abilities can only be changed
+        outside of an active round.
+    */
+
+    if (
+        !homeScreen ||
+        gameOver
+    ) {
+
+        return;
+    }
+
+
+    abilityScreen =
+        true;
+
+
+    updateAbilityMessage();
+}
+
+
+/* ==================================================
+   ABILITY CARD HTML
+================================================== */
+
+function abilityHTML(
+    ability,
+    index
+) {
+
+    const selected =
+        hasAbility(
+            ability.id
+        );
+
+
+    const slot =
+        abilityIndex(
+            ability.id
+        );
+
+
+    const keyboard =
+        index < 9
+
+            ? String(index + 1)
+
+            : (
+                index === 9
+                    ? "Q"
+                    : index === 10
+                        ? "W"
+                        : index === 11
+                            ? "E"
+                            : "R"
+            );
+
+
+    return `
+
+        <div
+            class="
+                ability-card
+                ${selected ? "selected" : ""}
+            "
+            onclick="
+                toggleAbility(${index})
+            "
+        >
+
+            <span class="ability-number">
+                ${keyboard}
+            </span>
+
+
+            <h3 style="
+                color:
+                    ${
+                        selected
+                            ? "#ffe600"
+                            : ability.color
+                    };
+            ">
+
+                ${ability.name}
+
+            </h3>
+
+
+            <p>
+                ${ability.description}
+            </p>
+
+
+            ${
+                selected
+
+                    ? `
+                        <span class="equipped-label">
+                            EQUIPPED — SLOT ${slot + 1}
+                        </span>
+                      `
+
+                    : ""
+            }
+
+        </div>
+    `;
+}
+
+
+/* ==================================================
+   ABILITY UI
+================================================== */
+
+function updateAbilityMessage() {
+
+    const first =
+        selectedAbilities[0];
+
+    const second =
+        selectedAbilities[1];
+
+
+    message.innerHTML = `
+
+        <div class="ability-header">
+
+            <div style="text-align:left">
+
+                <h1 style="
+                    color:#00ffff;
+                    margin-bottom:4px;
+                ">
+
+                    ABILITIES
+
+                </h1>
+
+
+                <p style="
+                    margin:0;
+                    font-size:13px;
+                ">
+
+                    Choose two permanent abilities
+                    for your runs.
+
+                </p>
+
+            </div>
+
+
+            <div class="ability-count">
+
+                ${
+                    first !== null
+                        ? "1"
+                        : "0"
+                }
+
+                /
+
+                ${
+                    second !== null
+                        ? "2"
+                        : "1"
+                }
+
+            </div>
+
+        </div>
+
+
+        <p style="
+            font-size:13px;
+            color:#888;
+        ">
+
+            Equipped abilities stay active across
+            new rounds and do not cost yellow orbs.
+
+            <br>
+
+            Click an ability or use its keyboard key.
+
+        </p>
+
+
+        <div class="ability-grid">
+
+            ${
+                ABILITIES
+                    .map(
+                        (
+                            ability,
+                            index
+                        ) =>
+                            abilityHTML(
+                                ability,
+                                index
+                            )
+                    )
+                    .join("")
+            }
+
+        </div>
+
+
+        <p style="
+            font-size:13px;
+            color:#777;
+            margin-bottom:0;
+        ">
+
+            ${
+                first !== null ||
+                second !== null
+
+                    ? "Your loadout is saved automatically."
+
+                    : "Choose two abilities to complete your loadout."
+            }
+
+            <br>
+
+            Keys 1–9, Q, W, E, R select abilities.
+
+        </p>
+
+
+        <button
+            class="main-button secondary-button"
+            onclick="showHome()"
+        >
+
+            BACK TO HOME
+
+        </button>
+    `;
+
+
+    message.classList.add(
+        "show"
+    );
+}
+
+
+window.toggleAbility =
+    toggleAbility;
+
+window.showAbilities =
+    showAbilities;
+
+window.showHome =
+    showHome;
 
 
 /* ==================================================
@@ -1158,11 +2362,7 @@ function toggleShop() {
 
 
     /*
-        Closing the shop is always
-        allowed.
-
-        This prevents the cooldown
-        from trapping the player inside.
+        Closing is always possible.
     */
 
     if (
@@ -1171,7 +2371,6 @@ function toggleShop() {
 
         paused =
             false;
-
 
         updateMessage();
 
@@ -1196,11 +2395,6 @@ function toggleShop() {
         true;
 
 
-    /*
-        The cooldown starts when
-        the shop is opened.
-    */
-
     shopCooldown =
         SHOP_COOLDOWN_TIME;
 
@@ -1210,7 +2404,7 @@ function toggleShop() {
 
 
 /* ==================================================
-   SHOP ITEM HTML
+   SHOP HTML
 ================================================== */
 
 function upgradeHTML(
@@ -1255,7 +2449,9 @@ function upgradeHTML(
             </p>
 
             <button
-                onclick="buyUpgrade('${id}')"
+                onclick="
+                    buyUpgrade('${id}')
+                "
                 ${canBuy ? "" : "disabled"}
             >
 
@@ -1283,12 +2479,14 @@ function updateShopMessage() {
     const cooldownText =
         shopCooldown > 0
 
-            ? `<span style="color:#ff1744">
-                Shop cooldown:
-                ${shopCooldown.toFixed(1)}s
-               </span>`
+            ? `
+                <span style="color:#ff1744">
+                    Shop cooldown:
+                    ${shopCooldown.toFixed(1)}s
+                </span>
+              `
 
-            : "Shop ready after cooldown.";
+            : "Shop cooldown ready.";
 
 
     message.innerHTML = `
@@ -1300,7 +2498,7 @@ function updateShopMessage() {
 
         <p>
             Spend yellow orbs on temporary upgrades.
-            All upgrades reset when the round ends.
+            All shop upgrades reset when the round ends.
         </p>
 
 
@@ -1328,7 +2526,7 @@ function updateShopMessage() {
             ${upgradeHTML(
                 "heavy",
                 "HEAVY CANNON",
-                "+1 normal-cannon damage per level. Scatter pellets also benefit, but remain individually weak.",
+                "+1 normal-cannon damage per level. Scatter pellets also benefit.",
                 "#ff7b00"
             )}
 
@@ -1369,7 +2567,9 @@ function updateShopMessage() {
 
 
                 <button
-                    onclick="buyUpgrade('repair')"
+                    onclick="
+                        buyUpgrade('repair')
+                    "
                     ${
                         orbs >= 2 &&
                         player.health <
@@ -1398,7 +2598,7 @@ function updateShopMessage() {
             ${upgradeHTML(
                 "scatter",
                 "SCATTER CANNON",
-                "Replaces the cannon with 7 low-damage pellets fired in a wide cone. Extremely high coverage. Each pellet deals half normal damage.",
+                "Replaces the normal cannon with 7 low-damage pellets fired in a wide cone.",
                 COLORS.scatter
             )}
 
@@ -1452,8 +2652,7 @@ function buyUpgrade(id) {
 
 
     /*
-        Repair is special because it
-        has no level.
+        Repair.
     */
 
     if (
@@ -1494,11 +2693,6 @@ function buyUpgrade(id) {
     const upgrade =
         upgrades[id];
 
-
-    /*
-        Defensive check against
-        invalid shop IDs.
-    */
 
     if (
         !upgrade
@@ -1570,8 +2764,23 @@ window.goHome =
 function updateMessage() {
 
     /*
-        HOME
+        Ability screen has priority
+        over Home.
     */
+
+    if (
+        abilityScreen
+    ) {
+
+        updateAbilityMessage();
+
+        return;
+    }
+
+
+    /* ----------------------------------------------
+       HOME
+    ---------------------------------------------- */
 
     if (
         homeScreen
@@ -1585,20 +2794,43 @@ function updateMessage() {
 
 
             <p>
+
                 Survive as long as possible,
                 destroy enemies, collect yellow
                 orbs and spend them in the Armory.
+
             </p>
 
 
-            <button
-                class="main-button"
-                onclick="startRound()"
-            >
+            <div class="home-buttons">
 
-                PLAY ROUND
+                <button
+                    class="main-button"
+                    onclick="
+                        startRound()
+                    "
+                >
 
-            </button>
+                    PLAY ROUND
+
+                </button>
+
+
+                <button
+                    class="
+                        main-button
+                        secondary-button
+                    "
+                    onclick="
+                        showAbilities()
+                    "
+                >
+
+                    ABILITIES
+
+                </button>
+
+            </div>
 
 
             <p style="
@@ -1606,10 +2838,14 @@ function updateMessage() {
                 color:#888;
             ">
 
-                Keyboard:
-                press ENTER or SPACE to play.
+                ENTER / SPACE — Play
+
+                <br>
+
+                B — Abilities
 
             </p>
+
         `;
 
 
@@ -1622,9 +2858,9 @@ function updateMessage() {
     }
 
 
-    /*
-        GAME OVER
-    */
+    /* ----------------------------------------------
+       GAME OVER
+    ---------------------------------------------- */
 
     if (
         gameOver
@@ -1663,7 +2899,9 @@ function updateMessage() {
 
             <button
                 class="main-button"
-                onclick="restart()"
+                onclick="
+                    restart()
+                "
             >
 
                 PLAY AGAIN
@@ -1672,8 +2910,13 @@ function updateMessage() {
 
 
             <button
-                class="main-button secondary-button"
-                onclick="goHome()"
+                class="
+                    main-button
+                    secondary-button
+                "
+                onclick="
+                    goHome()
+                "
             >
 
                 HOME
@@ -1686,10 +2929,14 @@ function updateMessage() {
                 color:#888;
             ">
 
-                Press R to play again
-                or H for Home.
+                R — Play Again
+
+                <br>
+
+                H — Home
 
             </p>
+
         `;
 
 
@@ -1702,9 +2949,9 @@ function updateMessage() {
     }
 
 
-    /*
-        SHOP
-    */
+    /* ----------------------------------------------
+       SHOP
+    ---------------------------------------------- */
 
     if (
         paused
@@ -1715,10 +2962,6 @@ function updateMessage() {
         return;
     }
 
-
-    /*
-        NORMAL GAMEPLAY
-    */
 
     message.classList.remove(
         "show"
@@ -1797,6 +3040,61 @@ function randomEdgePosition(
             Math.random() *
             height
     };
+}
+
+
+/* ==================================================
+   DIFFICULTY
+================================================== */
+
+function getEnemySpawnInterval() {
+
+    return Math.max(
+        0.16,
+        1 -
+        timeAlive *
+        0.009
+    );
+}
+
+
+/*
+    Yellow orbs now use the same
+    difficulty progression as enemies.
+
+    At the beginning:
+
+        Enemy interval = 1.0s
+        Orb interval   = 2.5s
+
+    As enemy spawning accelerates,
+    orb spawning accelerates by the
+    exact same relative progression.
+
+    This means the opening remains
+    deliberately quiet for both systems.
+*/
+
+function getOrbSpawnInterval() {
+
+    const enemyInterval =
+        getEnemySpawnInterval();
+
+
+    const baseEnemyInterval =
+        1;
+
+
+    const relativeDifficulty =
+        enemyInterval /
+        baseEnemyInterval;
+
+
+    return Math.max(
+        0.65,
+        2.5 *
+        relativeDifficulty
+    );
 }
 
 
@@ -2045,7 +3343,7 @@ function makeParticles(
 
 
 /* ==================================================
-   FIRE ONE BULLET
+   FIRE BULLET
 ================================================== */
 
 function fireBullet(
@@ -2093,7 +3391,11 @@ function fireBullet(
             damage,
 
         life:
-            1.25
+            hasAbility(
+                "thickBarrel"
+            )
+                ? 1.40
+                : 1.25
     });
 
 
@@ -2126,13 +3428,7 @@ function shoot() {
 
 
     /*
-        SCATTER CANNON
-
-        Seven pellets spread over
-        roughly 41 degrees.
-
-        Each pellet does half the
-        normal cannon damage.
+        Scatter Cannon.
     */
 
     if (
@@ -2154,12 +3450,6 @@ function shoot() {
 
             i++
         ) {
-
-            /*
-                This gives the pellets
-                evenly spaced positions
-                from -spread/2 to +spread/2.
-            */
 
             const t =
                 i /
@@ -2217,10 +3507,6 @@ function shoot() {
 
     else {
 
-        /*
-            Normal single-shot cannon.
-        */
-
         const muzzle =
             fireBullet(
                 player.aimAngle,
@@ -2237,10 +3523,6 @@ function shoot() {
         );
     }
 
-
-    /*
-        Rapid Fire affects both weapons.
-    */
 
     player.fireCooldown =
         player.fireRate;
@@ -2273,9 +3555,11 @@ function dash() {
     }
 
 
-    let dx = 0;
+    let dx =
+        0;
 
-    let dy = 0;
+    let dy =
+        0;
 
 
     if (
@@ -2283,7 +3567,8 @@ function dash() {
         down("arrowup")
     ) {
 
-        dy -= 1;
+        dy -=
+            1;
     }
 
 
@@ -2292,7 +3577,8 @@ function dash() {
         down("arrowdown")
     ) {
 
-        dy += 1;
+        dy +=
+            1;
     }
 
 
@@ -2301,7 +3587,8 @@ function dash() {
         down("arrowleft")
     ) {
 
-        dx -= 1;
+        dx -=
+            1;
     }
 
 
@@ -2310,7 +3597,8 @@ function dash() {
         down("arrowright")
     ) {
 
-        dx += 1;
+        dx +=
+            1;
     }
 
 
@@ -2328,7 +3616,6 @@ function dash() {
         dx /=
             length;
 
-
         dy /=
             length;
 
@@ -2338,7 +3625,6 @@ function dash() {
 
         dx =
             player.dashX;
-
 
         dy =
             player.dashY;
@@ -2377,6 +3663,41 @@ function dash() {
 
 function damagePlayer() {
 
+    /*
+        Emergency Shield absorbs exactly
+        one collision per run.
+
+        It does not prevent all damage.
+    */
+
+    if (
+        hasAbility(
+            "emergencyShield"
+        ) &&
+        !player.emergencyShieldUsed
+    ) {
+
+        player.emergencyShieldUsed =
+            true;
+
+
+        makeParticles(
+            player.x,
+            player.y,
+            "#66ccff",
+            35,
+            280
+        );
+
+
+        screenShake =
+            7;
+
+
+        return;
+    }
+
+
     player.health -=
         1;
 
@@ -2410,12 +3731,8 @@ function damagePlayer() {
 function update(delta) {
 
     /*
-        Shop cooldown is intentionally
-        updated even while the shop is open.
-
-        The player therefore cannot open,
-        close and immediately reopen it
-        to exploit the pause system.
+        Shop cooldown continues while
+        the shop is open.
     */
 
     if (
@@ -2445,9 +3762,12 @@ function update(delta) {
 
 
     /*
-        No gameplay simulation on
-        the Home Screen, in the Shop,
-        or after death.
+        Do not simulate the actual
+        game while paused, dead, or
+        on the Home Screen.
+
+        Particles are still allowed
+        to finish naturally.
     */
 
     if (
@@ -2469,14 +3789,6 @@ function update(delta) {
         delta;
 
 
-    /*
-        Survival score.
-
-        Math.max prevents the
-        survival score from erasing
-        enemy-kill points.
-    */
-
     score =
         Math.max(
             score,
@@ -2494,13 +3806,15 @@ function update(delta) {
         );
 
 
-    /* ----------------------------------------------
+    /* ==============================================
        AIM
-    ---------------------------------------------- */
+    ============================================== */
 
-    let aimX = 0;
+    let aimX =
+        0;
 
-    let aimY = 0;
+    let aimY =
+        0;
 
 
     if (
@@ -2508,7 +3822,8 @@ function update(delta) {
         down("arrowup")
     ) {
 
-        aimY -= 1;
+        aimY -=
+            1;
     }
 
 
@@ -2517,7 +3832,8 @@ function update(delta) {
         down("arrowdown")
     ) {
 
-        aimY += 1;
+        aimY +=
+            1;
     }
 
 
@@ -2526,7 +3842,8 @@ function update(delta) {
         down("arrowleft")
     ) {
 
-        aimX -= 1;
+        aimX -=
+            1;
     }
 
 
@@ -2535,7 +3852,8 @@ function update(delta) {
         down("arrowright")
     ) {
 
-        aimX += 1;
+        aimX +=
+            1;
     }
 
 
@@ -2553,14 +3871,12 @@ function update(delta) {
         aimX /=
             aimLength;
 
-
         aimY /=
             aimLength;
 
 
         player.aimX =
             aimX;
-
 
         player.aimY =
             aimY;
@@ -2574,20 +3890,23 @@ function update(delta) {
     }
 
 
-    /* ----------------------------------------------
+    /* ==============================================
        MOVEMENT
-    ---------------------------------------------- */
+    ============================================== */
 
-    let moveX = 0;
+    let moveX =
+        0;
 
-    let moveY = 0;
+    let moveY =
+        0;
 
 
     if (
         down("w")
     ) {
 
-        moveY -= 1;
+        moveY -=
+            1;
     }
 
 
@@ -2595,7 +3914,8 @@ function update(delta) {
         down("s")
     ) {
 
-        moveY += 1;
+        moveY +=
+            1;
     }
 
 
@@ -2603,7 +3923,8 @@ function update(delta) {
         down("a")
     ) {
 
-        moveX -= 1;
+        moveX -=
+            1;
     }
 
 
@@ -2611,7 +3932,8 @@ function update(delta) {
         down("d")
     ) {
 
-        moveX += 1;
+        moveX +=
+            1;
     }
 
 
@@ -2629,7 +3951,6 @@ function update(delta) {
         moveX /=
             moveLength;
 
-
         moveY /=
             moveLength;
 
@@ -2637,15 +3958,14 @@ function update(delta) {
         player.dashX =
             moveX;
 
-
         player.dashY =
             moveY;
     }
 
 
-    /* ----------------------------------------------
+    /* ==============================================
        COOLDOWNS
-    ---------------------------------------------- */
+    ============================================== */
 
     if (
         player.fireCooldown > 0
@@ -2666,9 +3986,7 @@ function update(delta) {
 
 
     /*
-        Holding Space automatically
-        fires when the weapon cooldown
-        reaches zero.
+        Hold SPACE for continuous fire.
     */
 
     if (
@@ -2679,9 +3997,29 @@ function update(delta) {
     }
 
 
-    /* ----------------------------------------------
+    /* ==============================================
        MOVEMENT
-    ---------------------------------------------- */
+    ============================================== */
+
+    let currentMoveSpeed =
+        player.moveSpeed;
+
+
+    /*
+        Last Stand.
+    */
+
+    if (
+        hasAbility(
+            "lastStand"
+        ) &&
+        player.health === 1
+    ) {
+
+        currentMoveSpeed *=
+            1.20;
+    }
+
 
     if (
         player.dashTime > 0
@@ -2708,19 +4046,19 @@ function update(delta) {
 
         player.x +=
             moveX *
-            player.moveSpeed *
+            currentMoveSpeed *
             delta;
 
 
         player.y +=
             moveY *
-            player.moveSpeed *
+            currentMoveSpeed *
             delta;
     }
 
 
     /*
-        Keep player inside the arena.
+        Arena boundaries.
     */
 
     player.x =
@@ -2745,21 +4083,33 @@ function update(delta) {
         );
 
 
-    /* ----------------------------------------------
+    /* ==============================================
        ENEMY SPAWNING
-    ---------------------------------------------- */
+    ============================================== */
 
     spawnTimer -=
         delta;
 
 
-    const spawnInterval =
-        Math.max(
-            0.16,
-            1 -
-            timeAlive *
-            0.009
-        );
+    let spawnInterval =
+        getEnemySpawnInterval();
+
+
+    /*
+        Quick Start affects only the
+        first five seconds.
+    */
+
+    if (
+        hasAbility(
+            "quickStart"
+        ) &&
+        timeAlive < 5
+    ) {
+
+        spawnInterval *=
+            1.25;
+    }
 
 
     if (
@@ -2774,9 +4124,9 @@ function update(delta) {
     }
 
 
-    /* ----------------------------------------------
+    /* ==============================================
        ORB SPAWNING
-    ---------------------------------------------- */
+    ============================================== */
 
     orbTimer -=
         delta;
@@ -2794,14 +4144,21 @@ function update(delta) {
         }
 
 
+        /*
+            Recalculate after every spawn
+            so the orb rate follows the
+            same difficulty curve as the
+            enemies.
+        */
+
         orbTimer =
-            2.5;
+            getOrbSpawnInterval();
     }
 
 
-    /* ----------------------------------------------
+    /* ==============================================
        OBJECT UPDATES
-    ---------------------------------------------- */
+    ============================================== */
 
     updateBullets(
         delta
@@ -2879,13 +4236,6 @@ function updateBullets(
         }
 
 
-        /*
-            Collision test.
-
-            A bullet can hit only one
-            enemy before disappearing.
-        */
-
         for (
             let j =
                 enemies.length - 1;
@@ -2937,6 +4287,24 @@ function updateBullets(
 
                     score +=
                         enemy.points;
+
+
+                    /*
+                        Scavenger:
+                        12% chance to spawn an
+                        additional orb.
+                    */
+
+                    if (
+                        hasAbility(
+                            "scavenger"
+                        ) &&
+                        Math.random() < 0.12 &&
+                        orbsOnMap.length < 5
+                    ) {
+
+                        spawnOrb();
+                    }
 
 
                     makeParticles(
@@ -3048,6 +4416,64 @@ function updateEnemies(
             );
 
 
+            /*
+                Combat Training produces
+                a defensive knockback.
+            */
+
+            if (
+                hasAbility(
+                    "combatTraining"
+                )
+            ) {
+
+                const angleAway =
+                    Math.atan2(
+                        player.y -
+                        enemy.y,
+
+                        player.x -
+                        enemy.x
+                    );
+
+
+                player.x +=
+                    Math.cos(
+                        angleAway
+                    ) *
+                    55;
+
+
+                player.y +=
+                    Math.sin(
+                        angleAway
+                    ) *
+                    55;
+
+
+                player.x =
+                    Math.max(
+                        player.radius,
+                        Math.min(
+                            width -
+                            player.radius,
+                            player.x
+                        )
+                    );
+
+
+                player.y =
+                    Math.max(
+                        player.radius,
+                        Math.min(
+                            height -
+                            player.radius,
+                            player.y
+                        )
+                    );
+            }
+
+
             damagePlayer();
 
 
@@ -3070,6 +4496,18 @@ function updateOrbs(
     delta
 ) {
 
+    /*
+        Magnetic Core.
+    */
+
+    const magnetRadius =
+        hasAbility(
+            "magneticCore"
+        )
+            ? 85
+            : 0;
+
+
     for (
         let i =
             orbsOnMap.length - 1;
@@ -3091,6 +4529,61 @@ function updateOrbs(
             delta * 5;
 
 
+        /*
+            Magnetic attraction.
+        */
+
+        if (
+            magnetRadius > 0
+        ) {
+
+            const dx =
+                player.x -
+                orb.x;
+
+
+            const dy =
+                player.y -
+                orb.y;
+
+
+            const distanceToPlayer =
+                Math.hypot(
+                    dx,
+                    dy
+                );
+
+
+            if (
+                distanceToPlayer > 0 &&
+                distanceToPlayer < magnetRadius
+            ) {
+
+                const pull =
+                    180 *
+                    (
+                        1 -
+                        distanceToPlayer /
+                        magnetRadius
+                    );
+
+
+                orb.x +=
+                    dx /
+                    distanceToPlayer *
+                    pull *
+                    delta;
+
+
+                orb.y +=
+                    dy /
+                    distanceToPlayer *
+                    pull *
+                    delta;
+            }
+        }
+
+
         if (
             distance(
                 player,
@@ -3101,15 +4594,44 @@ function updateOrbs(
             5
         ) {
 
-            orbs +=
+            /*
+                Collector:
+
+                Every fifth pickup is worth
+                two orbs instead of one.
+            */
+
+            player.pickupCount +=
                 1;
+
+
+            let value =
+                1;
+
+
+            if (
+                hasAbility(
+                    "collector"
+                ) &&
+                player.pickupCount % 5 === 0
+            ) {
+
+                value =
+                    2;
+            }
+
+
+            orbs +=
+                value;
 
 
             makeParticles(
                 orb.x,
                 orb.y,
                 COLORS.yellow,
-                25,
+                value === 2
+                    ? 35
+                    : 25,
                 220
             );
 
@@ -3227,8 +4749,8 @@ function endGame() {
         catch (error) {
 
             /*
-                Storage errors are ignored
-                rather than crashing the game.
+                Storage failure must not
+                break the game-over screen.
             */
         }
     }
@@ -3302,7 +4824,7 @@ function draw() {
 
 
 /* ==================================================
-   DRAW BACKGROUND
+   BACKGROUND
 ================================================== */
 
 function drawBackground() {
@@ -3381,7 +4903,7 @@ function drawBackground() {
 
 
 /* ==================================================
-   DRAW PLAYER
+   PLAYER
 ================================================== */
 
 function drawPlayer() {
@@ -3401,7 +4923,7 @@ function drawPlayer() {
 
 
     /*
-        Cannon barrel.
+        Cannon.
     */
 
     ctx.shadowBlur =
@@ -3419,11 +4941,6 @@ function drawPlayer() {
             ? COLORS.scatter
             : COLORS.cyan;
 
-
-    /*
-        Scatter cannon has a
-        visually wider muzzle.
-    */
 
     if (
         upgrades.scatter.level > 0
@@ -3462,7 +4979,7 @@ function drawPlayer() {
 
 
     /*
-        Ship body.
+        Ship.
     */
 
     ctx.shadowBlur =
@@ -3483,33 +5000,39 @@ function drawPlayer() {
 
     ctx.beginPath();
 
+
     ctx.moveTo(
         20,
         0
     );
+
 
     ctx.lineTo(
         -12,
         -10
     );
 
+
     ctx.lineTo(
         -7,
         0
     );
+
 
     ctx.lineTo(
         -12,
         10
     );
 
+
     ctx.closePath();
+
 
     ctx.fill();
 
 
     /*
-        Inner cockpit.
+        Cockpit.
     */
 
     ctx.shadowBlur =
@@ -3522,27 +5045,33 @@ function drawPlayer() {
 
     ctx.beginPath();
 
+
     ctx.moveTo(
         10,
         0
     );
+
 
     ctx.lineTo(
         -6,
         -5
     );
 
+
     ctx.lineTo(
         -3,
         0
     );
+
 
     ctx.lineTo(
         -6,
         5
     );
 
+
     ctx.closePath();
+
 
     ctx.fill();
 
@@ -3551,7 +5080,7 @@ function drawPlayer() {
 
 
     /*
-        Dash-ready indicator.
+        Dash indicator.
     */
 
     if (
@@ -3593,11 +5122,54 @@ function drawPlayer() {
 
         ctx.stroke();
     }
+
+
+    /*
+        Emergency Shield indicator.
+    */
+
+    if (
+        hasAbility(
+            "emergencyShield"
+        ) &&
+        !player.emergencyShieldUsed &&
+        !homeScreen &&
+        !gameOver
+    ) {
+
+        ctx.strokeStyle =
+            "rgba(102,204,255,.75)";
+
+
+        ctx.lineWidth =
+            1.5;
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+
+            player.x,
+
+            player.y,
+
+            player.radius +
+            14,
+
+            0,
+
+            Math.PI * 2
+        );
+
+
+        ctx.stroke();
+    }
 }
 
 
 /* ==================================================
-   DRAW BULLETS
+   BULLETS
 ================================================== */
 
 function drawBullets() {
@@ -3609,12 +5181,6 @@ function drawBullets() {
     ctx.shadowBlur =
         14;
 
-
-    /*
-        Scatter pellets use pink glow
-        so the player can immediately
-        distinguish the weapon.
-    */
 
     ctx.shadowColor =
         upgrades.scatter.level > 0
@@ -3648,7 +5214,7 @@ function drawBullets() {
 
 
 /* ==================================================
-   DRAW ENEMIES
+   ENEMIES
 ================================================== */
 
 function drawEnemies() {
@@ -3685,10 +5251,6 @@ function drawEnemies() {
                 : COLORS.red;
 
 
-        /*
-            Tank.
-        */
-
         if (
             enemy.type === "tank"
         ) {
@@ -3711,12 +5273,8 @@ function drawEnemies() {
                 14,
                 14
             );
+
         }
-
-
-        /*
-            Fast enemy.
-        */
 
         else if (
             enemy.type === "fast"
@@ -3747,12 +5305,8 @@ function drawEnemies() {
 
 
             ctx.fill();
+
         }
-
-
-        /*
-            Normal enemy.
-        */
 
         else {
 
@@ -3868,7 +5422,7 @@ function drawEnemies() {
 
 
 /* ==================================================
-   DRAW ORBS
+   ORBS
 ================================================== */
 
 function drawOrbs() {
@@ -3933,7 +5487,7 @@ function drawOrbs() {
 
 
 /* ==================================================
-   DRAW PARTICLES
+   PARTICLES
 ================================================== */
 
 function drawParticles() {
@@ -3969,15 +5523,10 @@ function drawParticles() {
 
 
 /* ==================================================
-   DRAW UI
+   UI
 ================================================== */
 
 function drawUI() {
-
-    /*
-        The Home Screen already has
-        its own HTML UI.
-    */
 
     if (
         homeScreen
@@ -3995,9 +5544,9 @@ function drawUI() {
         "left";
 
 
-    /* ------------------------------------------
+    /* ----------------------------------------------
        SCORE
-    ------------------------------------------ */
+    ---------------------------------------------- */
 
     ctx.fillStyle =
         COLORS.white;
@@ -4025,9 +5574,9 @@ function drawUI() {
     );
 
 
-    /* ------------------------------------------
+    /* ----------------------------------------------
        HEALTH
-    ------------------------------------------ */
+    ---------------------------------------------- */
 
     ctx.fillStyle =
         COLORS.red;
@@ -4067,9 +5616,9 @@ function drawUI() {
     }
 
 
-    /* ------------------------------------------
+    /* ----------------------------------------------
        ORBS
-    ------------------------------------------ */
+    ---------------------------------------------- */
 
     ctx.fillStyle =
         COLORS.yellow;
@@ -4086,9 +5635,9 @@ function drawUI() {
     );
 
 
-    /* ------------------------------------------
+    /* ----------------------------------------------
        RIGHT SIDE
-    ------------------------------------------ */
+    ---------------------------------------------- */
 
     ctx.textAlign =
         "right";
@@ -4155,9 +5704,9 @@ function drawUI() {
     }
 
 
-    /* ------------------------------------------
-       DASH BAR
-    ------------------------------------------ */
+    /* ----------------------------------------------
+       DASH
+    ---------------------------------------------- */
 
     const barWidth =
         120;
@@ -4201,9 +5750,9 @@ function drawUI() {
     );
 
 
-    /* ------------------------------------------
+    /* ----------------------------------------------
        CONTROLS
-    ------------------------------------------ */
+    ---------------------------------------------- */
 
     ctx.font =
         "12px Arial";
@@ -4243,12 +5792,9 @@ function drawUI() {
 function frame(now) {
 
     /*
-        First frame after starting a round
-        gets delta = 0.
-
-        Subsequent frames are capped at
-        50ms to prevent physics explosions
-        after browser stalls.
+        A zero delta on the first frame
+        prevents a large jump when returning
+        from the Home Screen.
     */
 
     const delta =
@@ -4275,10 +5821,6 @@ function frame(now) {
     draw();
 
 
-    /*
-        Always schedule the next frame.
-    */
-
     requestAnimationFrame(
         frame
     );
@@ -4286,19 +5828,18 @@ function frame(now) {
 
 
 /* ==================================================
-   INITIALIZE
+   INITIALIZATION
 ================================================== */
 
 resize();
 
 
 /*
-    Important difference from the
-    previous version:
+    The game intentionally starts
+    on the Home Screen.
 
-    The game is NOT started here.
-
-    The player first sees the Home Screen.
+    The permanent ability loadout
+    was loaded before this point.
 */
 
 updateMessage();
